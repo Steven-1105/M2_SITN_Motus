@@ -66,4 +66,26 @@ class MotControllerTest {
         assertThat(body).isNotNull();
         assertThat(body.valid()).isTrue();
     }
+
+    @Test
+    void randomSansLongueurUtilise6ParDefaut() {
+        WordResponse body = rest.getForObject(url("/words/random"), WordResponse.class);
+        assertThat(body).isNotNull();
+        assertThat(body.word()).matches("[A-Z]{6}");
+    }
+
+    @Test
+    void validateSansMotRetourneFalse() {
+        // Corps JSON vide {} -> word == null -> valid:false (branche de garde)
+        ValidResponse body = rest.postForObject(url("/words/validate"), java.util.Map.of(), ValidResponse.class);
+        assertThat(body).isNotNull();
+        assertThat(body.valid()).isFalse();
+    }
+
+    @Test
+    void existsMotInconnuRetourneFalse() {
+        ValidResponse body = rest.getForObject(url("/words/exists?word=zzzzzz"), ValidResponse.class);
+        assertThat(body).isNotNull();
+        assertThat(body.valid()).isFalse();
+    }
 }
