@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 // Resultat d'une partie terminee, envoye par game-service (modele "push").
-// score-service le persiste pour calculer classement et statistiques.
+// score-service le persiste, calcule le score, et s'en sert pour classement et stats.
 @Entity
 @Table(name = "game_result")
 public class GameResult {
@@ -33,8 +33,20 @@ public class GameResult {
     @Column(nullable = false)
     private int attempts;
 
+    // Nombre d'essais maximum autorise (envoye par game-service).
+    @Column(name = "max_attempts", nullable = false)
+    private int maxAttempts;
+
     @Column(name = "word_length", nullable = false)
     private int wordLength;
+
+    // Duree de la partie en secondes (0 si game-service ne l'a pas envoyee).
+    @Column(name = "duration_seconds", nullable = false)
+    private int durationSeconds;
+
+    // Score (points) calcule par score-service a partir des champs ci-dessus.
+    @Column(nullable = false)
+    private int score;
 
     @Column(name = "finished_at", nullable = false)
     private LocalDateTime finishedAt;
@@ -78,12 +90,36 @@ public class GameResult {
         this.attempts = attempts;
     }
 
+    public int getMaxAttempts() {
+        return maxAttempts;
+    }
+
+    public void setMaxAttempts(int maxAttempts) {
+        this.maxAttempts = maxAttempts;
+    }
+
     public int getWordLength() {
         return wordLength;
     }
 
     public void setWordLength(int wordLength) {
         this.wordLength = wordLength;
+    }
+
+    public int getDurationSeconds() {
+        return durationSeconds;
+    }
+
+    public void setDurationSeconds(int durationSeconds) {
+        this.durationSeconds = durationSeconds;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
     }
 
     public LocalDateTime getFinishedAt() {

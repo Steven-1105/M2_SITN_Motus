@@ -17,7 +17,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-// Tests de la logique metier (calcul de stats / classement / filtres) sur base H2.
+// Tests de la logique metier (score, stats, classement, filtres) sur base H2.
 @SpringBootTest
 class ScoreServiceTest {
 
@@ -33,19 +33,49 @@ class ScoreServiceTest {
     }
 
     @Test
+    void recordCalculeEtStockeLeScore() {
+        // gagne 3/6, 45 s, 6 lettres : 100 + 60 + 41 + 5 = 206
+        GameResultResponse r = service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, 45, null));
+        assertThat(r.score()).isEqualTo(206);
+    }
+
+    @Test
+    void partiePerdueDonneScoreZero() {
+        GameResultResponse r = service.record(new GameResultRequest(1L, 1L, false, 6, 6, 6, 30, null));
+        assertThat(r.score()).isZero();
+    }
+
+    @Test
+    void maxAttemptsEtDureeInvalidesUtilisentLesDefauts() {
+        // maxAttempts=0 -> defaut 6 ; durationSeconds=0 -> stocke 0
+        GameResultResponse r = service.record(new GameResultRequest(1L, 1L, true, 3, 0, 6, 0, null));
+        assertThat(r.maxAttempts()).isEqualTo(6);
+        assertThat(r.durationSeconds()).isZero();
+        // 100 + (6-3)*20=60 + bonus temps(duree=0 -> 50) + (6-5)*5=5 = 215
+        assertThat(r.score()).isEqualTo(215);
+    }
+
+    @Test
     void recordEstIdempotentParGameId() {
-        service.record(new GameResultRequest(1L, 1L, true, 3, 6, null));
-        service.record(new GameResultRequest(1L, 1L, false, 5, 6, null)); // meme gameId -> mise a jour
+        service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, null, null));
+        service.record(new GameResultRequest(1L, 1L, false, 5, 6, 6, null, null)); // meme gameId -> mise a jour
 
         assertThat(repository.count()).isEqualTo(1);
         PlayerStats s = service.playerStats(1L);
         assertThat(s.gamesPlayed()).isEqualTo(1);
-        assertThat(s.wins()).isZero(); // la derniere valeur (defaite) ecrase
+        assertThat(s.wins()).isZero();
+        assertThat(s.totalScore()).isZero(); // la defaite ecrase la victoire
     }
 
     @Test
     void recordSansGameIdLeveIllegalArgument() {
-        assertThatThrownBy(() -> service.record(new GameResultRequest(null, 1L, true, 3, 6, null)))
+        assertThatThrownBy(() -> service.record(new GameResultRequest(null, 1L, true, 3, 6, 6, null, null)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void recordSansPlayerIdLeveIllegalArgument() {
+        assertThatThrownBy(() -> service.record(new GameResultRequest(1L, null, true, 3, 6, 6, null, null)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -57,57 +87,56 @@ class ScoreServiceTest {
         assertThat(s.losses()).isZero();
         assertThat(s.winRate()).isZero();
         assertThat(s.averageAttempts()).isZero();
+        assertThat(s.totalScore()).isZero();
+        assertThat(s.bestScore()).isZero();
     }
 
     @Test
-    void statsCalculeVictoiresDefaitesEtMoyenne() {
-        service.record(new GameResultRequest(1L, 1L, true, 3, 6, null));
-        service.record(new GameResultRequest(2L, 1L, false, 5, 6, null));
+    void statsCalculeTotalEtMeilleurScore() {
+        service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, null, null));  // 165
+        service.record(new GameResultRequest(2L, 1L, false, 6, 6, 6, null, null)); // 0
 
         PlayerStats s = service.playerStats(1L);
         assertThat(s.gamesPlayed()).isEqualTo(2);
         assertThat(s.wins()).isEqualTo(1);
         assertThat(s.losses()).isEqualTo(1);
         assertThat(s.winRate()).isEqualTo(0.5);
-        assertThat(s.averageAttempts()).isEqualTo(4.0); // (3 + 5) / 2
+        assertThat(s.averageAttempts()).isEqualTo(4.5); // (3 + 6) / 2
+        assertThat(s.totalScore()).isEqualTo(165);
+        assertThat(s.bestScore()).isEqualTo(165);
     }
 
     @Test
-    void rankingTrieParVictoiresPuisMoyenneDEssais() {
-        service.record(new GameResultRequest(1L, 1L, true, 5, 6, null)); // joueur 1 : 1 victoire, 5 essais
-        service.record(new GameResultRequest(2L, 2L, true, 2, 6, null)); // joueur 2 : 1 victoire, 2 essais
-        service.record(new GameResultRequest(3L, 3L, false, 6, 6, null)); // joueur 3 : 0 victoire
+    void rankingTrieParTotalDePoints() {
+        service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, null, null)); // joueur 1 : 165
+        service.record(new GameResultRequest(2L, 1L, true, 5, 6, 6, null, null)); // joueur 1 : 125 -> total 290
+        service.record(new GameResultRequest(3L, 2L, true, 2, 6, 6, null, null)); // joueur 2 : 185
 
         List<RankingEntry> r = service.ranking();
-        assertThat(r).hasSize(3);
-        assertThat(r.get(0).playerId()).isEqualTo(2L); // 1 victoire, moins d'essais -> 1er
-        assertThat(r.get(1).playerId()).isEqualTo(1L); // 1 victoire, plus d'essais
-        assertThat(r.get(2).playerId()).isEqualTo(3L); // 0 victoire -> dernier
-    }
-
-    @Test
-    void recordSansPlayerIdLeveIllegalArgument() {
-        assertThatThrownBy(() -> service.record(new GameResultRequest(1L, null, true, 3, 6, null)))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(r).hasSize(2);
+        assertThat(r.get(0).playerId()).isEqualTo(1L);
+        assertThat(r.get(0).totalScore()).isEqualTo(290);
+        assertThat(r.get(1).playerId()).isEqualTo(2L);
+        assertThat(r.get(1).totalScore()).isEqualTo(185);
     }
 
     @Test
     void gamesFiltreParDateDebut() {
-        service.record(new GameResultRequest(1L, 1L, true, 3, 6, LocalDateTime.of(2026, 6, 1, 10, 0)));
-        service.record(new GameResultRequest(2L, 1L, true, 3, 6, LocalDateTime.of(2026, 6, 20, 10, 0)));
+        service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, null, LocalDateTime.of(2026, 6, 1, 10, 0)));
+        service.record(new GameResultRequest(2L, 1L, true, 3, 6, 6, null, LocalDateTime.of(2026, 6, 20, 10, 0)));
 
         List<GameResultResponse> r = service.games(null, LocalDate.of(2026, 6, 15), null);
         assertThat(r).hasSize(1);
-        assertThat(r.get(0).gameId()).isEqualTo(2L); // seulement apres le 15
+        assertThat(r.get(0).gameId()).isEqualTo(2L);
     }
 
     @Test
     void gamesFiltreParDateFin() {
-        service.record(new GameResultRequest(1L, 1L, true, 3, 6, LocalDateTime.of(2026, 6, 1, 10, 0)));
-        service.record(new GameResultRequest(2L, 1L, true, 3, 6, LocalDateTime.of(2026, 6, 20, 10, 0)));
+        service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, null, LocalDateTime.of(2026, 6, 1, 10, 0)));
+        service.record(new GameResultRequest(2L, 1L, true, 3, 6, 6, null, LocalDateTime.of(2026, 6, 20, 10, 0)));
 
         List<GameResultResponse> r = service.games(null, null, LocalDate.of(2026, 6, 15));
         assertThat(r).hasSize(1);
-        assertThat(r.get(0).gameId()).isEqualTo(1L); // seulement avant le 15
+        assertThat(r.get(0).gameId()).isEqualTo(1L);
     }
 }

@@ -7,5 +7,7 @@ public record PlayerStats(
         int wins,
         int losses,
         double winRate,
-        double averageAttempts) {
+        double averageAttempts,
+        int totalScore,
+        int bestScore) {
 }
