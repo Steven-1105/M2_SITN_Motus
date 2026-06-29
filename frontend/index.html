@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Motus — le jeu de mots</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="aurora"></div>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">MOTUS</span>
+        <span class="tagline">Trouve le mot mystère</span>
+      </div>
+      <div class="player">
+        <label for="pseudo">Joueur</label>
+        <input id="pseudo" type="text" placeholder="ton pseudo" maxlength="16" autocomplete="off" />
+      </div>
+    </header>
+
+    <div class="banner" id="banner" hidden></div>
+
+    <main class="layout">
+      <section class="card game">
+        <!-- Écran de sélection -->
+        <div id="setup" class="setup">
+          <h2>Choisis ton niveau</h2>
+          <p class="muted">Plus le mot est long, plus c'est difficile… et plus ça rapporte de points.</p>
+          <div id="levels" class="levels"><div class="loading">Chargement des niveaux…</div></div>
+          <button id="startBtn" class="btn primary" disabled>Commencer la partie</button>
+        </div>
+
+        <!-- Écran de jeu -->
+        <div id="play" class="play" hidden>
+          <div class="play-head">
+            <span class="chip"><b id="levelLabel">6</b> lettres</span>
+            <span class="chip">essai <b id="attemptLabel">1</b>/<span id="maxLabel">6</span></span>
+            <span class="chip timer"><i class="ic">⏱</i><b id="timer">0:00</b></span>
+            <button id="quitBtn" class="chip quit" title="Abandonner">✕</button>
+          </div>
+          <div id="board" class="board" aria-label="grille de jeu"></div>
+          <div id="message" class="message" role="status"></div>
+          <div id="keyboard" class="keyboard"></div>
+        </div>
+
+        <!-- Écran de fin -->
+        <div id="result" class="result" hidden>
+          <div id="resultIcon" class="result-icon"></div>
+          <h2 id="resultTitle"></h2>
+          <p id="resultWord" class="result-word"></p>
+          <div id="scoreBadge" class="score-badge"></div>
+          <p id="resultDetail" class="muted"></p>
+          <div class="result-actions">
+            <a id="defBtn" class="btn ghost" target="_blank" rel="noopener">📖 Définition du mot</a>
+            <button id="againBtn" class="btn primary">Rejouer</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <section class="card stats">
+          <h3>Tes statistiques</h3>
+          <div id="statsBody" class="stats-grid"><p class="muted small">Joue une partie pour voir tes stats.</p></div>
+        </section>
+        <section class="card ranking">
+          <h3>Classement <span class="muted small">par points</span></h3>
+          <ol id="rankingBody" class="ranking-list"><li class="muted small">Aucune partie pour l'instant.</li></ol>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="foot">
+      Motus · M2 MIAGE SITN · propulsé par <b>dict-service</b> + <b>score-service</b>
+    </footer>
+  </div>
+
+  <canvas id="confetti" class="confetti-canvas"></canvas>
+  <script src="js/app.js"></script>
+</body>
+</html>
