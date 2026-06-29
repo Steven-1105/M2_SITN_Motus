@@ -1,0 +1,27 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: game-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/motus_games?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+motus:
+  services:
+    dict-service-url: ${DICT_SERVICE_URL:http://localhost:8083}
+
+logging:
+  level:
+    com.motus.game: DEBUG
