@@ -21,3 +21,7 @@ target/
 
 # Variables d'environnement / secrets
 .env
+
+# Scripts de demo locaux (perso)
+lancer-demo.command
+arreter-demo.command
