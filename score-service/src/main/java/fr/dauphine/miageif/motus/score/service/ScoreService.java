@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +26,7 @@ public class ScoreService {
         this.repository = repository;
     }
 
-    // Enregistre (ou met a jour) le resultat d'une partie. Idempotent par gameId :
-    // si game-service renvoie le meme resultat, on ne cree pas de doublon.
+    // Enregistre (ou met a jour) le resultat d'une partie. Idempotent par gameId.
     // Le score est calcule ici (score-service = autorite des scores).
     public GameResultResponse record(GameResultRequest req) {
         if (req.gameId() == null || req.playerId() == null) {
@@ -53,26 +53,38 @@ public class ScoreService {
     }
 
     // Classement global : trie par total de points (desc), puis victoires (desc), puis joueur.
+    // pointsToNext = ecart de points pour rattraper le joueur juste au-dessus.
     public List<RankingEntry> ranking() {
         Map<Long, List<GameResult>> byPlayer = repository.findAll().stream()
                 .collect(Collectors.groupingBy(GameResult::getPlayerId));
-        return byPlayer.entrySet().stream()
+
+        List<RankingEntry> classes = byPlayer.entrySet().stream()
                 .map(e -> {
                     Stats s = computeStats(e.getValue());
                     return new RankingEntry(e.getKey(), s.games(), s.wins(), s.losses(),
-                            s.winRate(), s.avgAttempts(), s.totalScore());
+                            s.winRate(), s.avgAttempts(), s.totalScore(), s.avgScore(), 0);
                 })
                 .sorted(Comparator.comparingInt(RankingEntry::totalScore).reversed()
                         .thenComparing(Comparator.comparingInt(RankingEntry::wins).reversed())
                         .thenComparing(RankingEntry::playerId))
                 .toList();
+
+        // On recalcule pointsToNext une fois le classement trie.
+        List<RankingEntry> resultat = new ArrayList<>(classes.size());
+        for (int i = 0; i < classes.size(); i++) {
+            RankingEntry e = classes.get(i);
+            int pointsToNext = (i == 0) ? 0 : classes.get(i - 1).totalScore() - e.totalScore();
+            resultat.add(new RankingEntry(e.playerId(), e.gamesPlayed(), e.wins(), e.losses(),
+                    e.winRate(), e.averageAttempts(), e.totalScore(), e.averageScore(), pointsToNext));
+        }
+        return resultat;
     }
 
     // Statistiques d'un joueur (zeros s'il n'a aucune partie enregistree).
     public PlayerStats playerStats(Long playerId) {
         Stats s = computeStats(repository.findByPlayerId(playerId));
         return new PlayerStats(playerId, s.games(), s.wins(), s.losses(),
-                s.winRate(), s.avgAttempts(), s.totalScore(), s.bestScore());
+                s.winRate(), s.avgAttempts(), s.totalScore(), s.bestScore(), s.avgScore());
     }
 
     // Liste des parties (admin) avec filtres optionnels : joueur, plage de dates.
@@ -94,7 +106,7 @@ public class ScoreService {
     // --- helpers ---
 
     private record Stats(int games, int wins, int losses, double winRate, double avgAttempts,
-                         int totalScore, int bestScore) {
+                         int totalScore, int bestScore, double avgScore) {
     }
 
     private Stats computeStats(List<GameResult> list) {
@@ -107,7 +119,8 @@ public class ScoreService {
                 : 0.0;
         int totalScore = list.stream().mapToInt(GameResult::getScore).sum();
         int bestScore = list.stream().mapToInt(GameResult::getScore).max().orElse(0);
-        return new Stats(games, wins, losses, winRate, avgAttempts, totalScore, bestScore);
+        double avgScore = games > 0 ? round((double) totalScore / games) : 0.0;
+        return new Stats(games, wins, losses, winRate, avgAttempts, totalScore, bestScore, avgScore);
     }
 
     private double round(double v) {

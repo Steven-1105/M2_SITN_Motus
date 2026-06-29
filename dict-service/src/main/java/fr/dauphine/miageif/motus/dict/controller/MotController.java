@@ -1,5 +1,6 @@
 package fr.dauphine.miageif.motus.dict.controller;
 
+import fr.dauphine.miageif.motus.dict.dto.LevelInfo;
 import fr.dauphine.miageif.motus.dict.dto.ValidResponse;
 import fr.dauphine.miageif.motus.dict.dto.WordRequest;
 import fr.dauphine.miageif.motus.dict.dto.WordResponse;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 // API REST du dictionnaire - niveau 2 du modele de Richardson (cf. cours Partie IV)
 @RestController
@@ -54,5 +57,16 @@ public class MotController {
     @GetMapping("/exists")
     public ValidResponse motExiste(@RequestParam String word) {
         return new ValidResponse(repository.existsByMotIgnoreCase(word));
+    }
+
+    // GET /words/lengths  ->  [ { "length": 5, "count": 12 }, { "length": 6, "count": 17 }, ... ]
+    // Longueurs disponibles (= niveaux) avec le nombre de mots, pour le selecteur de difficulte.
+    @GetMapping("/lengths")
+    public List<LevelInfo> longueursDisponibles() {
+        return repository.findAll().stream()
+                .collect(Collectors.groupingBy(Mot::getLongueur, TreeMap::new, Collectors.counting()))
+                .entrySet().stream()
+                .map(e -> new LevelInfo(e.getKey(), e.getValue()))
+                .toList();
     }
 }

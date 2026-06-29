@@ -2,9 +2,10 @@ package fr.dauphine.miageif.motus.score.service;
 
 // Calcul du score d'une partie (echelle /10).
 //
-//   score = 100  +  (maxEssais - essais) * 20  +  max(0, 50 - secondes/5)  +  (longueur - 5) * 5
-//           base       bonus essais                 bonus temps                  bonus longueur
+//   score = 100  +  (maxEssais - essais) * 20  +  max(0, 50 - secondes/5)  +  (longueur - 5) * 15
+//           base       bonus essais                 bonus temps                  bonus longueur (niveau)
 //
+// La longueur du mot = la difficulte (niveau) : plus le mot est long, plus ca rapporte.
 // Une partie perdue vaut 0. Si la duree n'est pas fournie, le bonus temps vaut 0 (pas de triche).
 public final class ScoreCalculator {
 
@@ -12,7 +13,7 @@ public final class ScoreCalculator {
     public static final int BONUS_PAR_ESSAI_ECONOMISE = 20;
     public static final int BONUS_TEMPS_MAX = 50;
     public static final int SECONDES_PAR_POINT = 5;
-    public static final int BONUS_PAR_LETTRE_SUP = 5;
+    public static final int BONUS_PAR_LETTRE_SUP = 15;
     public static final int LONGUEUR_REFERENCE = 5;
     public static final int MAX_ESSAIS_DEFAUT = 6;
 

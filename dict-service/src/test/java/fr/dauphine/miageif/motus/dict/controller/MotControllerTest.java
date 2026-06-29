@@ -1,5 +1,6 @@
 package fr.dauphine.miageif.motus.dict.controller;
 
+import fr.dauphine.miageif.motus.dict.dto.LevelInfo;
 import fr.dauphine.miageif.motus.dict.dto.ValidResponse;
 import fr.dauphine.miageif.motus.dict.dto.WordRequest;
 import fr.dauphine.miageif.motus.dict.dto.WordResponse;
@@ -87,5 +88,12 @@ class MotControllerTest {
         ValidResponse body = rest.getForObject(url("/words/exists?word=zzzzzz"), ValidResponse.class);
         assertThat(body).isNotNull();
         assertThat(body.valid()).isFalse();
+    }
+
+    @Test
+    void lengthsRetourneLesLongueursDisponiblesAvecComptes() {
+        LevelInfo[] niveaux = rest.getForObject(url("/words/lengths"), LevelInfo[].class);
+        assertThat(niveaux).extracting(LevelInfo::length).contains(5, 6, 7, 8);
+        assertThat(niveaux).allMatch(n -> n.count() > 0);
     }
 }

@@ -59,7 +59,7 @@ class ScoreControllerTest {
                 rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class);
 
         assertThat(r.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(r.getBody()).contains("\"playerId\":1").contains("\"won\":true").contains("\"score\":165");
+        assertThat(r.getBody()).contains("\"playerId\":1").contains("\"won\":true").contains("\"score\":175");
         assertThat(repository.count()).isEqualTo(1);
     }
 
@@ -90,29 +90,31 @@ class ScoreControllerTest {
 
     @Test
     void rankingEstTrieParTotalDePoints() {
-        rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class); // 165
-        rest.postForEntity(url("/scores/results"), result(2, 1, true, 4, 6), String.class); // 145 -> total 310
-        rest.postForEntity(url("/scores/results"), result(3, 2, true, 2, 6), String.class); // 185
+        rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class); // 175
+        rest.postForEntity(url("/scores/results"), result(2, 1, true, 4, 6), String.class); // 155 -> total 330
+        rest.postForEntity(url("/scores/results"), result(3, 2, true, 2, 6), String.class); // 195
 
         RankingEntry[] ranking = rest.getForObject(url("/scores/ranking"), RankingEntry[].class);
         assertThat(ranking).hasSize(2);
         assertThat(ranking[0].playerId()).isEqualTo(1L);
-        assertThat(ranking[0].totalScore()).isEqualTo(310);
+        assertThat(ranking[0].totalScore()).isEqualTo(330);
         assertThat(ranking[1].playerId()).isEqualTo(2L);
-        assertThat(ranking[1].totalScore()).isEqualTo(185);
+        assertThat(ranking[1].totalScore()).isEqualTo(195);
+        assertThat(ranking[1].pointsToNext()).isEqualTo(135); // 330 - 195
     }
 
     @Test
     void statsJoueurViaHttp() {
-        rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class); // 165
+        rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class); // 175
         rest.postForEntity(url("/scores/results"), result(2, 1, false, 5, 6), String.class); // 0
 
         PlayerStats stats = rest.getForObject(url("/scores/players/1"), PlayerStats.class);
         assertThat(stats.gamesPlayed()).isEqualTo(2);
         assertThat(stats.wins()).isEqualTo(1);
         assertThat(stats.losses()).isEqualTo(1);
-        assertThat(stats.totalScore()).isEqualTo(165);
-        assertThat(stats.bestScore()).isEqualTo(165);
+        assertThat(stats.totalScore()).isEqualTo(175);
+        assertThat(stats.bestScore()).isEqualTo(175);
+        assertThat(stats.averageScore()).isEqualTo(87.5); // 175 / 2
     }
 
     @Test
