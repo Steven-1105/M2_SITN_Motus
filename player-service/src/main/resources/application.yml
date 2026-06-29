@@ -20,4 +20,4 @@ spring:
 
 logging:
   level:
-    com.motus.player: DEBUG
+    fr.dauphine.miageif.motus.player: DEBUG

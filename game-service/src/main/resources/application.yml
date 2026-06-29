@@ -24,4 +24,4 @@ motus:
 
 logging:
   level:
-    com.motus.game: DEBUG
+    fr.dauphine.miageif.motus.game: DEBUG
