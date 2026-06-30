@@ -5,16 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Motus — le jeu de mots</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="aurora"></div>
-
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <span class="logo">MOTUS</span>
-        <span class="tagline">Trouve le mot mystère</span>
+        <svg class="logo-mascot" viewBox="0 0 120 116" aria-hidden="true">
+          <rect x="14" y="26" width="92" height="84" rx="26" fill="#46A302" />
+          <rect x="14" y="16" width="92" height="84" rx="26" fill="#58CC02" />
+          <circle cx="46" cy="54" r="13" fill="#fff" />
+          <circle cx="78" cy="54" r="13" fill="#fff" />
+          <circle cx="49" cy="56" r="5.5" fill="#3c3c3c" />
+          <circle cx="81" cy="56" r="5.5" fill="#3c3c3c" />
+          <circle cx="47" cy="53" r="1.8" fill="#fff" />
+          <circle cx="79" cy="53" r="1.8" fill="#fff" />
+          <path d="M48 78 Q60 90 72 78" stroke="#2b6b00" stroke-width="4" fill="none" stroke-linecap="round" />
+          <circle cx="34" cy="72" r="6" fill="#ff9bb3" opacity=".7" />
+          <circle cx="90" cy="72" r="6" fill="#ff9bb3" opacity=".7" />
+        </svg>
+        <div class="brand-text">
+          <span class="logo">Motus</span>
+          <span class="tagline">trouve le mot mystère</span>
+        </div>
       </div>
       <div class="player">
         <label for="pseudo">Joueur</label>
@@ -29,7 +44,7 @@
         <!-- Écran de sélection -->
         <div id="setup" class="setup">
           <h2>Choisis ton niveau</h2>
-          <p class="muted">Plus le mot est long, plus c'est difficile… et plus ça rapporte de points.</p>
+          <p class="muted">Plus le mot est long, plus c'est difficile… et plus ça rapporte de points&nbsp;!</p>
           <div id="levels" class="levels"><div class="loading">Chargement des niveaux…</div></div>
           <button id="startBtn" class="btn primary" disabled>Commencer la partie</button>
         </div>
@@ -39,7 +54,7 @@
           <div class="play-head">
             <span class="chip"><b id="levelLabel">6</b> lettres</span>
             <span class="chip">essai <b id="attemptLabel">1</b>/<span id="maxLabel">6</span></span>
-            <span class="chip timer"><i class="ic">⏱</i><b id="timer">0:00</b></span>
+            <span class="chip timer"><b id="timer">0:00</b></span>
             <button id="quitBtn" class="chip quit" title="Abandonner">✕</button>
           </div>
           <div id="board" class="board" aria-label="grille de jeu"></div>
@@ -55,7 +70,7 @@
           <div id="scoreBadge" class="score-badge"></div>
           <p id="resultDetail" class="muted"></p>
           <div class="result-actions">
-            <a id="defBtn" class="btn ghost" target="_blank" rel="noopener">📖 Définition du mot</a>
+            <a id="defBtn" class="btn ghost" target="_blank" rel="noopener">Définition du mot</a>
             <button id="againBtn" class="btn primary">Rejouer</button>
           </div>
         </div>
