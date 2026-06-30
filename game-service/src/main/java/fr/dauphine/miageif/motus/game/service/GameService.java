@@ -10,6 +10,8 @@ import fr.dauphine.miageif.motus.game.exception.ResourceNotFoundException;
 import fr.dauphine.miageif.motus.game.repository.GameRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,11 +20,14 @@ public class GameService {
 
     private final GameRepository gameRepository;
     private final DictServiceClient dictServiceClient;
+    private final ScoreServiceClient scoreServiceClient;
     private final MotusEngine motusEngine;
 
-    public GameService(GameRepository gameRepository, DictServiceClient dictServiceClient, MotusEngine motusEngine) {
+    public GameService(GameRepository gameRepository, DictServiceClient dictServiceClient,
+                        ScoreServiceClient scoreServiceClient, MotusEngine motusEngine) {
         this.gameRepository = gameRepository;
         this.dictServiceClient = dictServiceClient;
+        this.scoreServiceClient = scoreServiceClient;
         this.motusEngine = motusEngine;
     }
 
@@ -64,6 +69,19 @@ public class GameService {
         }
 
         gameRepository.save(game);
+
+        if (game.getStatut() != GameStatus.EN_COURS) {
+            long durationSeconds = Duration.between(game.getCreatedAt(), LocalDateTime.now()).getSeconds();
+            scoreServiceClient.sendResult(new ScoreResultRequest(
+                    game.getId(),
+                    game.getPlayerId(),
+                    game.getStatut() == GameStatus.GAGNE,
+                    game.getAttemptsUsed(),
+                    game.getMaxAttempts(),
+                    game.getWordLength(),
+                    durationSeconds));
+        }
+
         return results;
     }
 

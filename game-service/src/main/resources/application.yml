@@ -21,6 +21,7 @@ spring:
 motus:
   services:
     dict-service-url: ${DICT_SERVICE_URL:http://localhost:8083}
+    score-service-url: ${SCORE_SERVICE_URL:http://localhost:8084}
 
 logging:
   level:
