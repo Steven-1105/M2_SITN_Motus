@@ -9,6 +9,7 @@ import fr.dauphine.miageif.motus.game.exception.InvalidWordException;
 import fr.dauphine.miageif.motus.game.exception.ResourceNotFoundException;
 import fr.dauphine.miageif.motus.game.repository.GameRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class GameService {
 
     private final GameRepository gameRepository;
