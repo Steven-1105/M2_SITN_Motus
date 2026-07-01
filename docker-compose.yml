@@ -49,32 +49,37 @@ services:
     restart: on-failure
     networks: [motus]
 
-  # ===== Services de Steven : a decommenter au Jour 5 (quand player/game seront sur la branche d'integration) =====
-  # player-service:
-  #   build: ./player-service
-  #   container_name: motus-player
-  #   environment:
-  #     SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/motus_players?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-  #     SPRING_DATASOURCE_USERNAME: root
-  #     SPRING_DATASOURCE_PASSWORD: root
-  #   ports: ["8081:8081"]
-  #   depends_on:
-  #     mysql: { condition: service_healthy }
-  #   networks: [motus]
-  #
-  # game-service:
-  #   build: ./game-service
-  #   container_name: motus-game
-  #   environment:
-  #     SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/motus_games?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-  #     SPRING_DATASOURCE_USERNAME: root
-  #     SPRING_DATASOURCE_PASSWORD: root
-  #     DICT_SERVICE_URL: "http://dict-service:8083"     # game appelle dict par son nom de service
-  #     SCORE_SERVICE_URL: "http://score-service:8084"   # et pousse les scores vers score
-  #   ports: ["8082:8082"]
-  #   depends_on:
-  #     mysql: { condition: service_healthy }
-  #   networks: [motus]
+  player-service:
+    build: ./player-service
+    container_name: motus-player
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/motus_players?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8081:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+    networks: [motus]
+
+  game-service:
+    build: ./game-service
+    container_name: motus-game
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/motus_games?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      DICT_SERVICE_URL: "http://dict-service:8083"     # game appelle dict par son nom de service
+      SCORE_SERVICE_URL: "http://score-service:8084"   # et pousse les scores vers score
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+    networks: [motus]
 
 volumes:
   motus-mysql-data:
