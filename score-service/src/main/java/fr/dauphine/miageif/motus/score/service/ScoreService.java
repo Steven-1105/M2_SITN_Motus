@@ -29,26 +29,26 @@ public class ScoreService {
     // Enregistre (ou met a jour) le resultat d'une partie. Idempotent par gameId.
     // Le score est calcule ici (score-service = autorite des scores).
     public GameResultResponse record(GameResultRequest req) {
-        if (req.gameId() == null || req.playerId() == null) {
+        if (req.getGameId() == null || req.getPlayerId() == null) {
             throw new IllegalArgumentException("gameId et playerId sont obligatoires");
         }
-        int maxAttempts = (req.maxAttempts() != null && req.maxAttempts() > 0)
-                ? req.maxAttempts() : ScoreCalculator.MAX_ESSAIS_DEFAUT;
-        int durationSeconds = (req.durationSeconds() != null && req.durationSeconds() > 0)
-                ? req.durationSeconds() : 0;
-        int score = ScoreCalculator.compute(req.won(), req.attempts(), maxAttempts,
-                req.wordLength(), req.durationSeconds());
+        int maxAttempts = (req.getMaxAttempts() != null && req.getMaxAttempts() > 0)
+                ? req.getMaxAttempts() : ScoreCalculator.MAX_ESSAIS_DEFAUT;
+        int durationSeconds = (req.getDurationSeconds() != null && req.getDurationSeconds() > 0)
+                ? req.getDurationSeconds() : 0;
+        int score = ScoreCalculator.compute(req.isWon(), req.getAttempts(), maxAttempts,
+                req.getWordLength(), req.getDurationSeconds());
 
-        GameResult gr = repository.findByGameId(req.gameId()).orElseGet(GameResult::new);
-        gr.setGameId(req.gameId());
-        gr.setPlayerId(req.playerId());
-        gr.setWon(req.won());
-        gr.setAttempts(req.attempts());
+        GameResult gr = repository.findByGameId(req.getGameId()).orElseGet(GameResult::new);
+        gr.setGameId(req.getGameId());
+        gr.setPlayerId(req.getPlayerId());
+        gr.setWon(req.isWon());
+        gr.setAttempts(req.getAttempts());
         gr.setMaxAttempts(maxAttempts);
-        gr.setWordLength(req.wordLength());
+        gr.setWordLength(req.getWordLength());
         gr.setDurationSeconds(durationSeconds);
         gr.setScore(score);
-        gr.setFinishedAt(req.finishedAt() != null ? req.finishedAt() : LocalDateTime.now());
+        gr.setFinishedAt(req.getFinishedAt() != null ? req.getFinishedAt() : LocalDateTime.now());
         return toResponse(repository.save(gr));
     }
 
@@ -64,18 +64,18 @@ public class ScoreService {
                     return new RankingEntry(e.getKey(), s.games(), s.wins(), s.losses(),
                             s.winRate(), s.avgAttempts(), s.totalScore(), s.avgScore(), 0);
                 })
-                .sorted(Comparator.comparingInt(RankingEntry::totalScore).reversed()
-                        .thenComparing(Comparator.comparingInt(RankingEntry::wins).reversed())
-                        .thenComparing(RankingEntry::playerId))
+                .sorted(Comparator.comparingInt(RankingEntry::getTotalScore).reversed()
+                        .thenComparing(Comparator.comparingInt(RankingEntry::getWins).reversed())
+                        .thenComparing(RankingEntry::getPlayerId))
                 .toList();
 
         // On recalcule pointsToNext une fois le classement trie.
         List<RankingEntry> resultat = new ArrayList<>(classes.size());
         for (int i = 0; i < classes.size(); i++) {
             RankingEntry e = classes.get(i);
-            int pointsToNext = (i == 0) ? 0 : classes.get(i - 1).totalScore() - e.totalScore();
-            resultat.add(new RankingEntry(e.playerId(), e.gamesPlayed(), e.wins(), e.losses(),
-                    e.winRate(), e.averageAttempts(), e.totalScore(), e.averageScore(), pointsToNext));
+            int pointsToNext = (i == 0) ? 0 : classes.get(i - 1).getTotalScore() - e.getTotalScore();
+            resultat.add(new RankingEntry(e.getPlayerId(), e.getGamesPlayed(), e.getWins(), e.getLosses(),
+                    e.getWinRate(), e.getAverageAttempts(), e.getTotalScore(), e.getAverageScore(), pointsToNext));
         }
         return resultat;
     }
@@ -105,6 +105,7 @@ public class ScoreService {
 
     // --- helpers ---
 
+    // Petit porteur de valeurs interne (non expose en JSON).
     private record Stats(int games, int wins, int losses, double winRate, double avgAttempts,
                          int totalScore, int bestScore, double avgScore) {
     }

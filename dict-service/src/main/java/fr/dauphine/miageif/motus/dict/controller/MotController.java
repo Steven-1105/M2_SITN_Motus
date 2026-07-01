@@ -47,8 +47,8 @@ public class MotController {
     // Contrat impose par game-service (Steven).
     @PostMapping("/validate")
     public ValidResponse validerMot(@RequestBody WordRequest requete) {
-        boolean valid = requete.word() != null
-                && repository.existsByMotIgnoreCase(requete.word());
+        boolean valid = requete.getWord() != null
+                && repository.existsByMotIgnoreCase(requete.getWord());
         return new ValidResponse(valid);
     }
 

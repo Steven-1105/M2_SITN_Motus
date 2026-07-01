@@ -19,8 +19,8 @@ class GlobalExceptionHandlerTest {
 
         assertThat(r.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(r.getBody()).isNotNull();
-        assertThat(r.getBody().status()).isEqualTo(404);
-        assertThat(r.getBody().error()).contains("longueur 99");
+        assertThat(r.getBody().getStatus()).isEqualTo(404);
+        assertThat(r.getBody().getError()).contains("longueur 99");
     }
 
     @Test
@@ -29,7 +29,7 @@ class GlobalExceptionHandlerTest {
 
         assertThat(r.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(r.getBody()).isNotNull();
-        assertThat(r.getBody().status()).isEqualTo(500);
-        assertThat(r.getBody().error()).isEqualTo("boom");
+        assertThat(r.getBody().getStatus()).isEqualTo(500);
+        assertThat(r.getBody().getError()).isEqualTo("boom");
     }
 }

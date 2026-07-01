@@ -41,7 +41,7 @@ class ScoreControllerTest {
         return "http://localhost:" + port + path;
     }
 
-    // maxAttempts=6, pas de duree -> score = 100 + (6-attempts)*20 + 0 + (wordLength-5)*5
+    // maxAttempts=6, pas de duree -> score = 100 + (6-attempts)*20 + 0 + (wordLength-5)*15
     private Map<String, Object> result(long gameId, long playerId, boolean won, int attempts, int wordLength) {
         Map<String, Object> m = new HashMap<>();
         m.put("gameId", gameId);
@@ -96,11 +96,11 @@ class ScoreControllerTest {
 
         RankingEntry[] ranking = rest.getForObject(url("/scores/ranking"), RankingEntry[].class);
         assertThat(ranking).hasSize(2);
-        assertThat(ranking[0].playerId()).isEqualTo(1L);
-        assertThat(ranking[0].totalScore()).isEqualTo(330);
-        assertThat(ranking[1].playerId()).isEqualTo(2L);
-        assertThat(ranking[1].totalScore()).isEqualTo(195);
-        assertThat(ranking[1].pointsToNext()).isEqualTo(135); // 330 - 195
+        assertThat(ranking[0].getPlayerId()).isEqualTo(1L);
+        assertThat(ranking[0].getTotalScore()).isEqualTo(330);
+        assertThat(ranking[1].getPlayerId()).isEqualTo(2L);
+        assertThat(ranking[1].getTotalScore()).isEqualTo(195);
+        assertThat(ranking[1].getPointsToNext()).isEqualTo(135); // 330 - 195
     }
 
     @Test
@@ -109,12 +109,12 @@ class ScoreControllerTest {
         rest.postForEntity(url("/scores/results"), result(2, 1, false, 5, 6), String.class); // 0
 
         PlayerStats stats = rest.getForObject(url("/scores/players/1"), PlayerStats.class);
-        assertThat(stats.gamesPlayed()).isEqualTo(2);
-        assertThat(stats.wins()).isEqualTo(1);
-        assertThat(stats.losses()).isEqualTo(1);
-        assertThat(stats.totalScore()).isEqualTo(175);
-        assertThat(stats.bestScore()).isEqualTo(175);
-        assertThat(stats.averageScore()).isEqualTo(87.5); // 175 / 2
+        assertThat(stats.getGamesPlayed()).isEqualTo(2);
+        assertThat(stats.getWins()).isEqualTo(1);
+        assertThat(stats.getLosses()).isEqualTo(1);
+        assertThat(stats.getTotalScore()).isEqualTo(175);
+        assertThat(stats.getBestScore()).isEqualTo(175);
+        assertThat(stats.getAverageScore()).isEqualTo(87.5); // 175 / 2
     }
 
     @Test

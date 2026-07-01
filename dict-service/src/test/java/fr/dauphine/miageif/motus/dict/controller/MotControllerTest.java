@@ -32,7 +32,7 @@ class MotControllerTest {
     void randomRetourneUnMotDeLaBonneLongueur() {
         WordResponse body = rest.getForObject(url("/words/random?length=6"), WordResponse.class);
         assertThat(body).isNotNull();
-        assertThat(body.word()).matches("[A-Z]{6}");
+        assertThat(body.getWord()).matches("[A-Z]{6}");
     }
 
     @Test
@@ -51,28 +51,28 @@ class MotControllerTest {
     void validateMotConnuRetourneTrue() {
         ValidResponse body = rest.postForObject(url("/words/validate"), new WordRequest("MAISON"), ValidResponse.class);
         assertThat(body).isNotNull();
-        assertThat(body.valid()).isTrue();
+        assertThat(body.isValid()).isTrue();
     }
 
     @Test
     void validateMotInconnuRetourneFalse() {
         ValidResponse body = rest.postForObject(url("/words/validate"), new WordRequest("ZZZZZZ"), ValidResponse.class);
         assertThat(body).isNotNull();
-        assertThat(body.valid()).isFalse();
+        assertThat(body.isValid()).isFalse();
     }
 
     @Test
     void existsEstInsensibleALaCasse() {
         ValidResponse body = rest.getForObject(url("/words/exists?word=maison"), ValidResponse.class);
         assertThat(body).isNotNull();
-        assertThat(body.valid()).isTrue();
+        assertThat(body.isValid()).isTrue();
     }
 
     @Test
     void randomSansLongueurUtilise6ParDefaut() {
         WordResponse body = rest.getForObject(url("/words/random"), WordResponse.class);
         assertThat(body).isNotNull();
-        assertThat(body.word()).matches("[A-Z]{6}");
+        assertThat(body.getWord()).matches("[A-Z]{6}");
     }
 
     @Test
@@ -80,20 +80,20 @@ class MotControllerTest {
         // Corps JSON vide {} -> word == null -> valid:false (branche de garde)
         ValidResponse body = rest.postForObject(url("/words/validate"), java.util.Map.of(), ValidResponse.class);
         assertThat(body).isNotNull();
-        assertThat(body.valid()).isFalse();
+        assertThat(body.isValid()).isFalse();
     }
 
     @Test
     void existsMotInconnuRetourneFalse() {
         ValidResponse body = rest.getForObject(url("/words/exists?word=zzzzzz"), ValidResponse.class);
         assertThat(body).isNotNull();
-        assertThat(body.valid()).isFalse();
+        assertThat(body.isValid()).isFalse();
     }
 
     @Test
     void lengthsRetourneLesLongueursDisponiblesAvecComptes() {
         LevelInfo[] niveaux = rest.getForObject(url("/words/lengths"), LevelInfo[].class);
-        assertThat(niveaux).extracting(LevelInfo::length).contains(5, 6, 7, 8);
-        assertThat(niveaux).allMatch(n -> n.count() > 0);
+        assertThat(niveaux).extracting(LevelInfo::getLength).contains(5, 6, 7, 8);
+        assertThat(niveaux).allMatch(n -> n.getCount() > 0);
     }
 }

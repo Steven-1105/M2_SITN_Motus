@@ -18,8 +18,8 @@ class GlobalExceptionHandlerTest {
 
         assertThat(r.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(r.getBody()).isNotNull();
-        assertThat(r.getBody().status()).isEqualTo(400);
-        assertThat(r.getBody().error()).contains("playerId");
+        assertThat(r.getBody().getStatus()).isEqualTo(400);
+        assertThat(r.getBody().getError()).contains("playerId");
     }
 
     @Test
@@ -28,7 +28,7 @@ class GlobalExceptionHandlerTest {
 
         assertThat(r.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(r.getBody()).isNotNull();
-        assertThat(r.getBody().status()).isEqualTo(500);
-        assertThat(r.getBody().error()).isEqualTo("boom");
+        assertThat(r.getBody().getStatus()).isEqualTo(500);
+        assertThat(r.getBody().getError()).isEqualTo("boom");
     }
 }
