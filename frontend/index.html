@@ -31,9 +31,19 @@
           <span class="tagline">trouve le mot mystère</span>
         </div>
       </div>
-      <div class="player">
-        <label for="pseudo">Joueur</label>
+      <div class="header-right">
         <input id="pseudo" type="text" placeholder="ton pseudo" maxlength="16" autocomplete="off" />
+        <div class="tools">
+          <button class="tool-btn" data-modal="stats" title="Mes statistiques" aria-label="Statistiques">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><line x1="7" y1="20" x2="7" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="17" y1="20" x2="17" y2="15"/></svg>
+          </button>
+          <button class="tool-btn" data-modal="ranking" title="Classement" aria-label="Classement">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M9 13.5 7.5 21 12 18.2 16.5 21 15 13.5"/></svg>
+          </button>
+          <button class="tool-btn" data-modal="history" title="Historique de mes parties" aria-label="Historique">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -75,22 +85,31 @@
           </div>
         </div>
       </section>
-
-      <aside class="sidebar">
-        <section class="card stats">
-          <h3>Tes statistiques</h3>
-          <div id="statsBody" class="stats-grid"><p class="muted small">Joue une partie pour voir tes stats.</p></div>
-        </section>
-        <section class="card ranking">
-          <h3>Classement <span class="muted small">par points</span></h3>
-          <ol id="rankingBody" class="ranking-list"><li class="muted small">Aucune partie pour l'instant.</li></ol>
-        </section>
-      </aside>
     </main>
 
     <footer class="foot">
       Motus · M2 MIAGE SITN · propulsé par <b>dict-service</b> + <b>score-service</b>
     </footer>
+  </div>
+
+  <!-- Fenêtres (widgets) ouvertes par les icônes -->
+  <div class="modal" id="modal-stats" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><h3>Tes statistiques</h3><button class="modal-close" data-close>✕</button></div>
+      <div id="statsBody" class="stats-grid"><p class="muted small">Joue une partie pour voir tes stats.</p></div>
+    </div>
+  </div>
+  <div class="modal" id="modal-ranking" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><h3>Classement <span class="muted small">par points</span></h3><button class="modal-close" data-close>✕</button></div>
+      <ol id="rankingBody" class="ranking-list"><li class="muted small">Aucune partie pour l'instant.</li></ol>
+    </div>
+  </div>
+  <div class="modal" id="modal-history" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><h3>Historique de tes parties</h3><button class="modal-close" data-close>✕</button></div>
+      <div id="historyBody" class="history-list"><p class="muted small">Aucune partie jouée pour l'instant.</p></div>
+    </div>
   </div>
 
   <canvas id="confetti" class="confetti-canvas"></canvas>

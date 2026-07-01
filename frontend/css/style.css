@@ -36,14 +36,23 @@ body {
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .logo { font-size: 30px; font-weight: 900; color: var(--green); letter-spacing: .5px; }
 .tagline { color: var(--muted); font-size: 14px; font-weight: 700; }
-.player { display: flex; align-items: center; gap: 10px; }
-.player label { color: var(--muted); font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
-.player input {
+.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#pseudo {
   background: #fff; border: 2px solid var(--border); color: var(--text);
   padding: 11px 16px; border-radius: 14px; font-size: 15px; font-weight: 700;
-  font-family: inherit; outline: none; transition: border-color .15s;
+  font-family: inherit; outline: none; transition: border-color .15s; width: 150px;
 }
-.player input:focus { border-color: var(--blue); }
+#pseudo:focus { border-color: var(--blue); }
+.tools { display: flex; gap: 8px; }
+.tool-btn {
+  width: 46px; height: 46px; border: none; border-radius: 14px; padding: 0;
+  background: var(--green); box-shadow: 0 4px 0 var(--green-d);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: transform .08s, box-shadow .08s, filter .15s;
+}
+.tool-btn svg { width: 24px; height: 24px; }
+.tool-btn:hover { filter: brightness(1.06); }
+.tool-btn:active { transform: translateY(4px); box-shadow: none; }
 
 .banner {
   background: #fff0f0; border: 2px solid #ffd0d0; color: #d83a3a;
@@ -51,7 +60,7 @@ body {
 }
 
 /* ---------- Layout & cartes ---------- */
-.layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+.layout { max-width: 640px; margin: 0 auto; }
 .card { background: #fff; border: 2px solid var(--border); border-radius: var(--radius); padding: 24px; }
 .game { min-height: 480px; display: flex; flex-direction: column; }
 .sidebar { display: flex; flex-direction: column; gap: 20px; }
@@ -156,6 +165,23 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 .rank-name { flex: 1; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rank-meta { font-size: 11px; color: var(--muted); font-weight: 700; }
 .rank-score { font-weight: 900; color: var(--green); }
+
+/* ---------- Fenêtres (widgets) ---------- */
+.modal { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.modal-card { background: #fff; border-radius: 22px; padding: 22px; width: 100%; max-width: 420px; max-height: 82vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); }
+.modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; }
+.modal-head h3 { margin: 0; }
+.modal-close { width: 36px; height: 36px; flex: none; border: none; border-radius: 12px; background: var(--bg2); font-size: 16px; font-weight: 800; color: var(--muted); cursor: pointer; }
+.modal-close:hover { background: var(--border); color: var(--text); }
+
+/* ---------- Historique ---------- */
+.history-list { display: flex; flex-direction: column; gap: 8px; }
+.hist-item { display: flex; align-items: center; gap: 12px; background: var(--bg2); border: 2px solid var(--border); border-radius: 14px; padding: 10px 12px; }
+.hist-item.win { border-color: #bde9a0; }
+.hist-item.loss { border-color: #f3c0c0; }
+.hist-res { font-size: 20px; }
+.hist-main { flex: 1; font-size: 14px; font-weight: 700; line-height: 1.35; }
+.hist-score { font-weight: 900; color: var(--green); }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; font-weight: 700; margin-top: 26px; }
 .foot b { color: var(--text); }

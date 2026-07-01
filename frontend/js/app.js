@@ -263,6 +263,7 @@ async function endGame(won) {
   renderResult(won, score, attempts, durationSeconds);
   refreshRanking();
   refreshStats();
+  refreshHistory();
   if (won) confetti();
 }
 
@@ -325,6 +326,29 @@ async function refreshStats() {
   } catch (e) { /* silencieux */ }
 }
 
+async function refreshHistory() {
+  const me = getPlayerId(pseudoInput.value);
+  try {
+    const res = await api(`${SCORE}/scores/games?playerId=${me}`);
+    const games = await res.json();
+    const body = document.getElementById("historyBody");
+    if (!games.length) { body.innerHTML = '<p class="muted small">Aucune partie jouée pour l\'instant.</p>'; return; }
+    body.innerHTML = "";
+    games.forEach((g) => {
+      const dt = new Date(g.finishedAt.slice(0, 19));
+      const when = dt.toLocaleDateString("fr-FR") + " · " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+      const item = document.createElement("div");
+      item.className = "hist-item " + (g.won ? "win" : "loss");
+      item.innerHTML =
+        `<span class="hist-res">${g.won ? "✅" : "❌"}</span>` +
+        `<span class="hist-main"><b>${g.wordLength} lettres</b> · ${g.attempts} essai${g.attempts > 1 ? "s" : ""}<br>` +
+        `<span class="muted small">${when}</span></span>` +
+        `<span class="hist-score">${g.score} pts</span>`;
+      body.appendChild(item);
+    });
+  } catch (e) { /* silencieux */ }
+}
+
 // ====== Confettis ======
 function confetti() {
   const cv = $("confetti"), ctx = cv.getContext("2d");
@@ -361,8 +385,21 @@ $("againBtn").onclick = () => { show("setup"); };
 $("quitBtn").onclick = () => { clearInterval(state.timer); show("setup"); };
 pseudoInput.addEventListener("change", () => {
   localStorage.setItem("motus_pseudo", pseudoInput.value);
-  refreshStats(); refreshRanking();
+  refreshStats(); refreshRanking(); refreshHistory();
 });
+
+// Widgets : les icônes ouvrent les fenêtres (et rafraîchissent leur contenu)
+function openModal(name) {
+  if (name === "stats") refreshStats();
+  else if (name === "ranking") refreshRanking();
+  else if (name === "history") refreshHistory();
+  document.getElementById("modal-" + name).hidden = false;
+}
+document.querySelectorAll(".tool-btn").forEach((b) => (b.onclick = () => openModal(b.dataset.modal)));
+document.querySelectorAll(".modal").forEach((m) => {
+  m.addEventListener("click", (e) => { if (e.target === m || e.target.hasAttribute("data-close")) m.hidden = true; });
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.querySelectorAll(".modal").forEach((m) => (m.hidden = true)); });
 
 // ====== Init ======
 pseudoInput.value = localStorage.getItem("motus_pseudo") || "";
