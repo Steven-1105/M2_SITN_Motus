@@ -1,30 +1,15 @@
-// ====== Configuration des services (Liya) ======
+// ====== Configuration des 4 microservices ======
+const PLAYER = "http://localhost:8081";
+const GAME = "http://localhost:8082";
 const DICT = "http://localhost:8083";
 const SCORE = "http://localhost:8084";
 const MAX_ATTEMPTS = 6;
 
-// ====== Petit mapping pseudo <-> playerId (cote front, le serveur ne gere que des ids) ======
-function playerMap() { return JSON.parse(localStorage.getItem("motus_players") || "{}"); }
-function getPlayerId(pseudo) {
-  pseudo = (pseudo || "").trim() || "Invité";
-  const map = playerMap();
-  if (!map[pseudo]) {
-    const ids = Object.values(map);
-    map[pseudo] = ids.length ? Math.max(...ids) + 1 : 1;
-    localStorage.setItem("motus_players", JSON.stringify(map));
-  }
-  return map[pseudo];
-}
-function pseudoForId(id) {
-  const map = playerMap();
-  for (const [p, i] of Object.entries(map)) if (i === id) return p;
-  return "Joueur " + id;
-}
-
 // ====== Etat de jeu ======
 const state = {
-  target: "", length: 6, row: 0, col: 1,
-  board: [], finished: false, startTime: 0, timer: null, selectedLength: null,
+  gameId: null, length: 6, maxAttempts: MAX_ATTEMPTS,
+  row: 0, col: 0, board: [], finished: false,
+  startTime: 0, timer: null, selectedLength: null, playerId: null,
 };
 
 // ====== Raccourcis DOM ======
@@ -35,27 +20,45 @@ const elSetup = $("setup"), elPlay = $("play"), elResult = $("result");
 const elBoard = $("board"), elKeyboard = $("keyboard"), elMessage = $("message");
 const elBanner = $("banner");
 
-// ====== Helpers API ======
-async function api(url, options) {
-  const res = await fetch(url, options);
-  if (!res.ok && res.status >= 500) throw new Error("server");
-  return res;
-}
 function showBanner(msg) { elBanner.textContent = msg; elBanner.hidden = false; }
 function hideBanner() { elBanner.hidden = true; }
+function show(screen) { elSetup.hidden = screen !== "setup"; elPlay.hidden = screen !== "play"; elResult.hidden = screen !== "result"; }
 
-// ====== Navigation entre ecrans ======
-function show(screen) {
-  elSetup.hidden = screen !== "setup";
-  elPlay.hidden = screen !== "play";
-  elResult.hidden = screen !== "result";
+// ====== player-service : retrouver (ou creer) le joueur du pseudo ======
+async function resolvePlayer(pseudo) {
+  pseudo = (pseudo || "").trim() || "Invité";
+  const cache = JSON.parse(localStorage.getItem("motus_playerids") || "{}");
+  if (cache[pseudo]) return cache[pseudo];
+  let id = null;
+  try {
+    const res = await fetch(`${PLAYER}/players`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: pseudo, email: pseudo.toLowerCase() + "@motus.local", password: "motus1234" }),
+    });
+    if (res.ok) {
+      id = (await res.json()).id;
+    } else {
+      // pseudo deja pris -> on le retrouve dans la liste
+      const list = await (await fetch(`${PLAYER}/players`)).json();
+      const found = list.find((p) => p.username === pseudo);
+      id = found ? found.id : null;
+    }
+  } catch (e) {
+    return null;
+  }
+  if (id != null) { cache[pseudo] = id; localStorage.setItem("motus_playerids", JSON.stringify(cache)); }
+  return id;
+}
+function pseudoForId(id) {
+  const cache = JSON.parse(localStorage.getItem("motus_playerids") || "{}");
+  for (const [p, i] of Object.entries(cache)) if (i === id) return p;
+  return "Joueur " + id;
 }
 
-// ====== Niveaux (longueurs disponibles) ======
+// ====== Niveaux (dict-service) ======
 async function loadLevels() {
   try {
-    const res = await api(`${DICT}/words/lengths`);
-    const levels = await res.json();
+    const levels = await (await fetch(`${DICT}/words/lengths`)).json();
     hideBanner();
     elLevels.innerHTML = "";
     levels.forEach((lv) => {
@@ -72,40 +75,49 @@ async function loadLevels() {
       elLevels.appendChild(div);
     });
   } catch (e) {
-    showBanner("⚠️ dict-service injoignable (port 8083). Lance-le, puis recharge la page.");
+    showBanner("⚠️ dict-service injoignable (port 8083). Lance la stack, puis recharge.");
     elLevels.innerHTML = '<div class="loading">Niveaux indisponibles.</div>';
   }
 }
 
-// ====== Demarrage d'une partie ======
+// ====== Demarrage d'une partie (game-service) ======
 async function startGame() {
   const len = state.selectedLength || 6;
+  const playerId = await resolvePlayer(pseudoInput.value);
+  if (playerId == null) { showBanner("⚠️ player-service injoignable (port 8081)."); return; }
+  state.playerId = playerId;
+  let game;
   try {
-    const res = await api(`${DICT}/words/random?length=${len}`);
-    const data = await res.json();
-    state.target = (data.word || "").toUpperCase();
+    const res = await fetch(`${GAME}/games`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ playerId, wordLength: len, maxAttempts: MAX_ATTEMPTS }),
+    });
+    if (!res.ok) throw new Error("game");
+    game = await res.json();
   } catch (e) {
-    showBanner("⚠️ Impossible de tirer un mot (dict-service injoignable).");
+    showBanner("⚠️ game-service injoignable (port 8082). Réessaie (dict peut être en train de démarrer).");
     return;
   }
-  state.length = state.target.length;
-  state.row = 0; state.col = 1; state.finished = false;
-  state.board = Array.from({ length: MAX_ATTEMPTS }, () => Array(state.length).fill(""));
+  hideBanner();
+  state.gameId = game.id;
+  state.length = game.wordLength;
+  state.maxAttempts = game.maxAttempts;
+  state.row = 0; state.col = 0; state.finished = false;
+  state.board = Array.from({ length: state.maxAttempts }, () => Array(state.length).fill(""));
   $("levelLabel").textContent = state.length;
-  $("maxLabel").textContent = MAX_ATTEMPTS;
+  $("maxLabel").textContent = state.maxAttempts;
   $("attemptLabel").textContent = 1;
   elMessage.textContent = "";
   buildBoard();
   buildKeyboard();
-  primeRow();
+  keyStateReset();
   show("play");
   startTimer();
 }
 
 function buildBoard() {
   elBoard.innerHTML = "";
-  elBoard.style.gridTemplateRows = `repeat(${MAX_ATTEMPTS}, auto)`;
-  for (let r = 0; r < MAX_ATTEMPTS; r++) {
+  for (let r = 0; r < state.maxAttempts; r++) {
     const row = document.createElement("div");
     row.className = "row"; row.dataset.row = r;
     for (let c = 0; c < state.length; c++) {
@@ -116,50 +128,45 @@ function buildBoard() {
     elBoard.appendChild(row);
   }
 }
-
-// La premiere lettre est donnee (comme au vrai Motus).
-function primeRow() {
-  const first = state.target[0];
-  state.board[state.row][0] = first;
-  state.col = 1;
-  const t = tile(state.row, 0);
-  t.textContent = first; t.classList.add("given");
-}
 function tile(r, c) { return elBoard.querySelector(`.tile[data-row="${r}"][data-col="${c}"]`); }
 
 // ====== Saisie ======
 function onKey(letter) {
-  if (state.finished || elPlay.hidden) return;
-  if (state.col >= state.length) return;
+  if (state.finished || elPlay.hidden || state.col >= state.length) return;
   state.board[state.row][state.col] = letter;
   const t = tile(state.row, state.col);
   t.textContent = letter; t.classList.add("filled");
   state.col++;
 }
 function onBackspace() {
-  if (state.finished || state.col <= 1) return;
+  if (state.finished || state.col <= 0) return;
   state.col--;
   state.board[state.row][state.col] = "";
   const t = tile(state.row, state.col);
   t.textContent = ""; t.classList.remove("filled");
 }
+let submitting = false;
 async function onEnter() {
-  if (state.finished || state.col < state.length) { flashMessage("Complète le mot."); return; }
+  if (state.finished || submitting) return;
+  if (state.col < state.length) { flashMessage("Complète le mot."); return; }
   const guess = state.board[state.row].join("").toUpperCase();
-  // Verification : le mot doit exister dans le dictionnaire
+  submitting = true;
+  let results;
   try {
-    const res = await api(`${DICT}/words/validate`, {
+    const res = await fetch(`${GAME}/games/${state.gameId}/guess`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ word: guess }),
     });
-    const { valid } = await res.json();
-    if (!valid) { shakeRow(); flashMessage(`« ${guess} » n'est pas dans le dictionnaire.`); return; }
+    if (res.status === 400) { shakeRow(); flashMessage(`« ${guess} » n'est pas dans le dictionnaire.`); submitting = false; return; }
+    if (!res.ok) throw new Error("guess");
+    results = await res.json(); // [{ lettre, statut }]
   } catch (e) {
-    shakeRow(); flashMessage("Validation impossible (dict-service injoignable)."); return;
+    shakeRow(); flashMessage("game-service injoignable."); submitting = false; return;
   }
-  revealRow(guess);
+  revealRow(results, guess);
 }
 
+const STATUT_CLASS = { BIEN_PLACE: "correct", MAL_PLACE: "present", ABSENT: "absent" };
 function flashMessage(m) { elMessage.textContent = m; }
 function shakeRow() {
   const row = elBoard.querySelector(`.row[data-row="${state.row}"]`);
@@ -167,38 +174,33 @@ function shakeRow() {
   setTimeout(() => row.classList.remove("shake"), 400);
 }
 
-// ====== Comparaison Motus (gere les lettres en double) ======
-function compare(guess, target) {
-  const n = target.length;
-  const result = Array(n).fill("absent");
-  const used = Array(n).fill(false);
-  for (let i = 0; i < n; i++) if (guess[i] === target[i]) { result[i] = "correct"; used[i] = true; }
-  for (let i = 0; i < n; i++) {
-    if (result[i] === "correct") continue;
-    for (let j = 0; j < n; j++) {
-      if (!used[j] && guess[i] === target[j]) { result[i] = "present"; used[j] = true; break; }
-    }
-  }
-  return result;
-}
-
-function revealRow(guess) {
-  const statuses = compare(guess, state.target);
-  statuses.forEach((st, c) => {
+function revealRow(results, guess) {
+  results.forEach((res, c) => {
+    const cls = STATUT_CLASS[res.statut] || "absent";
     const t = tile(state.row, c);
     setTimeout(() => {
       t.classList.add("reveal");
-      setTimeout(() => { t.classList.remove("given", "filled"); t.classList.add(st); paintKey(guess[c], st); }, 250);
+      setTimeout(() => { t.classList.remove("filled"); t.classList.add(cls); paintKey(guess[c], cls); }, 250);
     }, c * 120);
   });
-  const delay = state.length * 120 + 300;
-  if (guess === state.target) { setTimeout(() => endGame(true), delay); return; }
-  if (state.row >= MAX_ATTEMPTS - 1) { setTimeout(() => endGame(false), delay); return; }
-  setTimeout(() => {
-    state.row++; primeRow();
-    $("attemptLabel").textContent = state.row + 1;
-    elMessage.textContent = "";
-  }, delay);
+  const delay = state.length * 120 + 320;
+  setTimeout(() => finishRowThenContinue(guess), delay);
+}
+
+// Apres l'animation : on demande a game-service l'etat de la partie (gagne / perdu / en cours).
+async function finishRowThenContinue(guess) {
+  let game;
+  try {
+    game = await (await fetch(`${GAME}/games/${state.gameId}`)).json();
+  } catch (e) { game = null; }
+  const statut = game ? game.statut : "EN_COURS";
+  if (statut === "GAGNE") { endGame(true, guess, game); return; }
+  if (statut === "PERDU") { endGame(false, guess, game); return; }
+  // partie en cours : ligne suivante
+  state.row++; state.col = 0;
+  $("attemptLabel").textContent = state.row + 1;
+  elMessage.textContent = "";
+  submitting = false;
 }
 
 // ====== Clavier a l'ecran (AZERTY) ======
@@ -217,14 +219,14 @@ function buildKeyboard() {
     elKeyboard.appendChild(row);
   });
 }
-const keyState = {};
-function paintKey(letter, st) {
-  const prev = keyState[letter];
+let keyState = {};
+function keyStateReset() { keyState = {}; }
+function paintKey(letter, cls) {
   const rank = { absent: 0, present: 1, correct: 2 };
-  if (prev && rank[prev] >= rank[st]) return;
-  keyState[letter] = st;
+  if (keyState[letter] && rank[keyState[letter]] >= rank[cls]) return;
+  keyState[letter] = cls;
   const btn = elKeyboard.querySelector(`.key[data-key="${letter}"]`);
-  if (btn) { btn.classList.remove("correct", "present", "absent"); btn.classList.add(st); }
+  if (btn) { btn.classList.remove("correct", "present", "absent"); btn.classList.add(cls); }
 }
 
 // ====== Chrono ======
@@ -237,69 +239,46 @@ function startTimer() {
   }, 1000);
 }
 
-// ====== Fin de partie + envoi du score ======
-async function endGame(won) {
-  state.finished = true;
+// ====== Fin de partie ======
+// game-service a DEJA pousse le score vers score-service. On recupere juste le score a afficher.
+async function endGame(won, lastGuess, game) {
+  state.finished = true; submitting = false;
   clearInterval(state.timer);
-  const durationSeconds = Math.round((Date.now() - state.startTime) / 1000);
-  const attempts = state.row + 1;
-  const playerId = getPlayerId(pseudoInput.value);
-  const payload = {
-    gameId: Date.now(), playerId, won, attempts,
-    maxAttempts: MAX_ATTEMPTS, wordLength: state.length, durationSeconds,
-  };
-  let score = localScore(won, attempts, MAX_ATTEMPTS, state.length, durationSeconds);
+  const seconds = Math.round((Date.now() - state.startTime) / 1000);
+  const word = (game && game.motMystere && !game.motMystere.includes("*")) ? game.motMystere : lastGuess;
+  let score = null;
   try {
-    const res = await api(`${SCORE}/scores/results`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const saved = await res.json();
-    if (typeof saved.score === "number") score = saved.score;
-    hideBanner();
-  } catch (e) {
-    showBanner("⚠️ score-service injoignable (port 8084) : score affiché localement, non enregistré.");
-  }
-  renderResult(won, score, attempts, durationSeconds);
-  refreshRanking();
-  refreshStats();
-  refreshHistory();
+    const parties = await (await fetch(`${SCORE}/scores/games?playerId=${state.playerId}`)).json();
+    const p = parties.find((x) => x.gameId === state.gameId);
+    if (p) score = p.score;
+  } catch (e) { /* score-service indispo */ }
+  renderResult(won, word, seconds, score);
+  refreshRanking(); refreshStats(); refreshHistory();
   if (won) confetti();
 }
 
-// Même formule que score-service (utilisée seulement si le service est down).
-function localScore(won, attempts, maxAttempts, wordLength, seconds) {
-  if (!won) return 0;
-  const essais = Math.min(attempts, maxAttempts);
-  const bonusEssais = (maxAttempts - essais) * 20;
-  const bonusTemps = Math.max(0, 50 - Math.floor(seconds / 5));
-  const bonusLongueur = Math.max(0, wordLength - 5) * 15;
-  return 100 + bonusEssais + bonusTemps + bonusLongueur;
-}
-
-function renderResult(won, score, attempts, seconds) {
+function renderResult(won, word, seconds, score) {
   $("resultIcon").textContent = won ? "🎉" : "😶‍🌫️";
   $("resultTitle").textContent = won ? "Gagné !" : "Perdu…";
-  $("resultWord").textContent = "Le mot était : " + state.target;
-  $("scoreBadge").textContent = (won ? "+" : "") + score + " points";
+  $("resultWord").textContent = "Le mot était : " + word;
+  $("scoreBadge").textContent = score != null ? (won ? "+" : "") + score + " points" : "";
   $("resultDetail").textContent = won
-    ? `Trouvé en ${attempts} essai${attempts > 1 ? "s" : ""} · ${seconds} s`
+    ? `Trouvé en ${state.row + 1} essai${state.row > 0 ? "s" : ""} · ${seconds} s`
     : "Tu as utilisé tous tes essais.";
   const def = $("defBtn");
-  def.href = "https://www.larousse.fr/dictionnaires/francais/" + encodeURIComponent(state.target.toLowerCase());
+  def.href = "https://www.larousse.fr/dictionnaires/francais/" + encodeURIComponent(word.toLowerCase());
   show("result");
 }
 
-// ====== Classement & statistiques ======
+// ====== Classement / stats / historique (score-service) ======
 async function refreshRanking() {
   try {
-    const res = await api(`${SCORE}/scores/ranking`);
-    const list = await res.json();
-    const me = getPlayerId(pseudoInput.value);
+    const list = await (await fetch(`${SCORE}/scores/ranking`)).json();
+    const me = state.playerId;
     const body = $("rankingBody");
     if (!list.length) { body.innerHTML = '<li class="muted small">Aucune partie pour l\'instant.</li>'; return; }
     body.innerHTML = "";
-    list.slice(0, 8).forEach((r, i) => {
+    list.slice(0, 10).forEach((r, i) => {
       const li = document.createElement("li");
       li.className = "rank-item" + (r.playerId === me ? " me" : "");
       const gap = r.pointsToNext > 0 ? ` · -${r.pointsToNext} pour remonter` : "";
@@ -309,14 +288,14 @@ async function refreshRanking() {
         <span class="rank-score">${r.totalScore}</span>`;
       body.appendChild(li);
     });
-  } catch (e) { /* score-service down : on garde l'affichage courant */ }
+  } catch (e) { /* silencieux */ }
 }
 
 async function refreshStats() {
-  const me = getPlayerId(pseudoInput.value);
+  const me = state.playerId || (await resolvePlayer(pseudoInput.value));
+  if (me == null) return;
   try {
-    const res = await api(`${SCORE}/scores/players/${me}`);
-    const s = await res.json();
+    const s = await (await fetch(`${SCORE}/scores/players/${me}`)).json();
     const cell = (v, k) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;
     $("statsBody").innerHTML =
       cell(s.gamesPlayed, "parties") + cell(s.wins, "victoires") +
@@ -327,11 +306,11 @@ async function refreshStats() {
 }
 
 async function refreshHistory() {
-  const me = getPlayerId(pseudoInput.value);
+  const me = state.playerId || (await resolvePlayer(pseudoInput.value));
+  if (me == null) return;
   try {
-    const res = await api(`${SCORE}/scores/games?playerId=${me}`);
-    const games = await res.json();
-    const body = document.getElementById("historyBody");
+    const games = await (await fetch(`${SCORE}/scores/games?playerId=${me}`)).json();
+    const body = $("historyBody");
     if (!games.length) { body.innerHTML = '<p class="muted small">Aucune partie jouée pour l\'instant.</p>'; return; }
     body.innerHTML = "";
     games.forEach((g) => {
@@ -353,42 +332,21 @@ async function refreshHistory() {
 function confetti() {
   const cv = $("confetti"), ctx = cv.getContext("2d");
   cv.width = innerWidth; cv.height = innerHeight;
-  const colors = ["#6c7bff", "#a06bff", "#2fae6f", "#e7a33e", "#ff6b8a"];
+  const colors = ["#58cc02", "#1cb0f6", "#ffc800", "#ff4b4b", "#a06bff"];
   const parts = Array.from({ length: 140 }, () => ({
     x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * 0.3,
     r: 4 + Math.random() * 5, c: colors[(Math.random() * colors.length) | 0],
-    vy: 2 + Math.random() * 3, vx: -1.5 + Math.random() * 3, a: Math.random() * Math.PI,
+    vy: 2 + Math.random() * 3, vx: -1.5 + Math.random() * 3,
   }));
   let frames = 0;
   (function loop() {
     ctx.clearRect(0, 0, cv.width, cv.height);
-    parts.forEach((p) => {
-      p.y += p.vy; p.x += p.vx; p.a += 0.1;
-      ctx.fillStyle = p.c;
-      ctx.fillRect(p.x, p.y, p.r, p.r * 1.6);
-    });
-    if (frames++ < 160) requestAnimationFrame(loop);
-    else ctx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach((p) => { p.y += p.vy; p.x += p.vx; ctx.fillStyle = p.c; ctx.fillRect(p.x, p.y, p.r, p.r * 1.6); });
+    if (frames++ < 160) requestAnimationFrame(loop); else ctx.clearRect(0, 0, cv.width, cv.height);
   })();
 }
 
-// ====== Branchements ======
-document.addEventListener("keydown", (e) => {
-  if (elPlay.hidden) return;
-  const k = e.key.toUpperCase();
-  if (k === "ENTER") onEnter();
-  else if (k === "BACKSPACE") onBackspace();
-  else if (/^[A-Z]$/.test(k)) onKey(k);
-});
-elStart.onclick = startGame;
-$("againBtn").onclick = () => { show("setup"); };
-$("quitBtn").onclick = () => { clearInterval(state.timer); show("setup"); };
-pseudoInput.addEventListener("change", () => {
-  localStorage.setItem("motus_pseudo", pseudoInput.value);
-  refreshStats(); refreshRanking(); refreshHistory();
-});
-
-// Widgets : les icônes ouvrent les fenêtres (et rafraîchissent leur contenu)
+// ====== Widgets (fenetres) ======
 function openModal(name) {
   if (name === "stats") refreshStats();
   else if (name === "ranking") refreshRanking();
@@ -399,10 +357,24 @@ document.querySelectorAll(".tool-btn").forEach((b) => (b.onclick = () => openMod
 document.querySelectorAll(".modal").forEach((m) => {
   m.addEventListener("click", (e) => { if (e.target === m || e.target.hasAttribute("data-close")) m.hidden = true; });
 });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.querySelectorAll(".modal").forEach((m) => (m.hidden = true)); });
+
+// ====== Branchements ======
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { document.querySelectorAll(".modal").forEach((m) => (m.hidden = true)); return; }
+  if (elPlay.hidden) return;
+  const k = e.key.toUpperCase();
+  if (k === "ENTER") onEnter();
+  else if (k === "BACKSPACE") onBackspace();
+  else if (/^[A-Z]$/.test(k)) onKey(k);
+});
+elStart.onclick = startGame;
+$("againBtn").onclick = () => show("setup");
+$("quitBtn").onclick = () => { clearInterval(state.timer); show("setup"); };
+pseudoInput.addEventListener("change", () => {
+  localStorage.setItem("motus_pseudo", pseudoInput.value);
+  state.playerId = null; // on re-resolvera le joueur au prochain besoin
+});
 
 // ====== Init ======
 pseudoInput.value = localStorage.getItem("motus_pseudo") || "";
 loadLevels();
-refreshRanking();
-refreshStats();
