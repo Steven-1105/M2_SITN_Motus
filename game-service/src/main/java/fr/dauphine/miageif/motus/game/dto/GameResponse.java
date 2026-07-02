@@ -30,7 +30,10 @@ public class GameResponse {
         response.setAttempts(attempts);
 
         boolean finished = game.getStatut() != GameStatus.EN_COURS;
-        response.setMotMystere(finished ? game.getMotMystere() : "*".repeat(game.getWordLength()));
+        // Pendant la partie on revele la 1re lettre (comme au vrai Motus), le reste masque.
+        response.setMotMystere(finished
+                ? game.getMotMystere()
+                : game.getMotMystere().charAt(0) + "*".repeat(game.getWordLength() - 1));
 
         return response;
     }
