@@ -15,9 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.TreeMap;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 // API REST du dictionnaire - niveau 2 du modele de Richardson (cf. cours Partie IV)
 @RestController
@@ -35,11 +32,10 @@ public class MotController {
     // Appele par game-service pour demarrer une partie.
     @GetMapping("/random")
     public WordResponse motAleatoire(@RequestParam(defaultValue = "6") int length) {
-        List<Mot> mots = repository.findByLongueur(length);
-        if (mots.isEmpty()) {
+        Mot choisi = repository.findRandomByLongueur(length);
+        if (choisi == null) {
             throw new WordNotFoundException("Aucun mot de longueur " + length);
         }
-        Mot choisi = mots.get(ThreadLocalRandom.current().nextInt(mots.size()));
         return new WordResponse(choisi.getMot());
     }
 
@@ -59,14 +55,12 @@ public class MotController {
         return new ValidResponse(repository.existsByMotIgnoreCase(word));
     }
 
-    // GET /words/lengths  ->  [ { "length": 5, "count": 12 }, { "length": 6, "count": 17 }, ... ]
-    // Longueurs disponibles (= niveaux) avec le nombre de mots, pour le selecteur de difficulte.
+    // GET /words/lengths  ->  [ { "length": 5, "count": 5891 }, ... ]
+    // Longueurs disponibles (= niveaux) avec le nombre de mots.
     @GetMapping("/lengths")
     public List<LevelInfo> longueursDisponibles() {
-        return repository.findAll().stream()
-                .collect(Collectors.groupingBy(Mot::getLongueur, TreeMap::new, Collectors.counting()))
-                .entrySet().stream()
-                .map(e -> new LevelInfo(e.getKey(), e.getValue()))
+        return repository.countByLongueur().stream()
+                .map(row -> new LevelInfo(((Number) row[0]).intValue(), ((Number) row[1]).longValue()))
                 .toList();
     }
 }
