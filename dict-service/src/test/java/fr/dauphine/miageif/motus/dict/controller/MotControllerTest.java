@@ -96,4 +96,23 @@ class MotControllerTest {
         assertThat(niveaux).extracting(LevelInfo::getLength).contains(5, 6, 7, 8);
         assertThat(niveaux).allMatch(n -> n.getCount() > 0);
     }
+
+    @Test
+    void randomNePropossJamaisUneFormeConjugueeCommeReponse() {
+        // PRIEZ (jeu de test) est une conjugaison : jamais tiree comme mot mystere,
+        // meme si elle reste une proposition valide pour le joueur (cf. test suivant).
+        for (int i = 0; i < 200; i++) {
+            WordResponse body = rest.getForObject(url("/words/random?length=5"), WordResponse.class);
+            assertThat(body.getWord()).isNotEqualTo("PRIEZ");
+        }
+    }
+
+    @Test
+    void validateAcceptEncoreLesFormesConjuguesCommeProposition() {
+        // Le joueur peut proposer PRIEZ pour eliminer des lettres, meme si ce ne sera
+        // jamais le mot a deviner.
+        ValidResponse body = rest.postForObject(url("/words/validate"), new WordRequest("PRIEZ"), ValidResponse.class);
+        assertThat(body).isNotNull();
+        assertThat(body.isValid()).isTrue();
+    }
 }

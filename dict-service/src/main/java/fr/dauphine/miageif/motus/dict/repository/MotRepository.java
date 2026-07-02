@@ -17,8 +17,14 @@ public interface MotRepository extends JpaRepository<Mot, Long> {
     boolean existsByMotIgnoreCase(String mot);
 
     // Tirage aleatoire EFFICACE : ne charge qu'UNE ligne (indispensable avec 130k+ mots).
-    @Query(value = "SELECT * FROM mot WHERE longueur = :longueur ORDER BY RAND() LIMIT 1", nativeQuery = true)
-    Mot findRandomByLongueur(@Param("longueur") int longueur);
+    // Exclut les formes conjuguees en -EZ/-IEZ (vous ...ez), trop dures a deviner comme
+    // reponse (ex: PRIEZ, PLIEZ). Ces mots restent valides en tant que PROPOSITION du joueur
+    // (cf. existsByMotIgnoreCase, utilise par /words/validate, non filtre).
+    // Exceptions connues qui ne sont pas des verbes : ASSEZ, CHEZ.
+    @Query(value = "SELECT * FROM mot WHERE longueur = :longueur "
+            + "AND (mot NOT REGEXP 'EZ$' OR mot IN ('ASSEZ', 'CHEZ')) "
+            + "ORDER BY RAND() LIMIT 1", nativeQuery = true)
+    Mot findRandomJouableByLongueur(@Param("longueur") int longueur);
 
     // Nombre de mots par longueur, sans charger les mots.
     @Query("SELECT m.longueur, COUNT(m) FROM Mot m GROUP BY m.longueur ORDER BY m.longueur")
