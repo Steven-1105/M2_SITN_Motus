@@ -41,7 +41,7 @@ class ScoreControllerTest {
         return "http://localhost:" + port + path;
     }
 
-    // maxAttempts=6, pas de duree -> score = 100 + (6-attempts)*20 + 0 + (wordLength-5)*15
+    // maxAttempts=6, pas de duree -> score = 100 + (6-attempts)*20 + 0 + 20*2^(wordLength-5)
     private Map<String, Object> result(long gameId, long playerId, boolean won, int attempts, int wordLength) {
         Map<String, Object> m = new HashMap<>();
         m.put("gameId", gameId);
@@ -59,7 +59,7 @@ class ScoreControllerTest {
                 rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class);
 
         assertThat(r.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(r.getBody()).contains("\"playerId\":1").contains("\"won\":true").contains("\"score\":175");
+        assertThat(r.getBody()).contains("\"playerId\":1").contains("\"won\":true").contains("\"score\":200");
         assertThat(repository.count()).isEqualTo(1);
     }
 
@@ -90,31 +90,31 @@ class ScoreControllerTest {
 
     @Test
     void rankingEstTrieParTotalDePoints() {
-        rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class); // 175
-        rest.postForEntity(url("/scores/results"), result(2, 1, true, 4, 6), String.class); // 155 -> total 330
-        rest.postForEntity(url("/scores/results"), result(3, 2, true, 2, 6), String.class); // 195
+        rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class); // 200
+        rest.postForEntity(url("/scores/results"), result(2, 1, true, 4, 6), String.class); // 180 -> total 380
+        rest.postForEntity(url("/scores/results"), result(3, 2, true, 2, 6), String.class); // 220
 
         RankingEntry[] ranking = rest.getForObject(url("/scores/ranking"), RankingEntry[].class);
         assertThat(ranking).hasSize(2);
         assertThat(ranking[0].getPlayerId()).isEqualTo(1L);
-        assertThat(ranking[0].getTotalScore()).isEqualTo(330);
+        assertThat(ranking[0].getTotalScore()).isEqualTo(380);
         assertThat(ranking[1].getPlayerId()).isEqualTo(2L);
-        assertThat(ranking[1].getTotalScore()).isEqualTo(195);
-        assertThat(ranking[1].getPointsToNext()).isEqualTo(135); // 330 - 195
+        assertThat(ranking[1].getTotalScore()).isEqualTo(220);
+        assertThat(ranking[1].getPointsToNext()).isEqualTo(160); // 380 - 220
     }
 
     @Test
     void statsJoueurViaHttp() {
-        rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class); // 175
+        rest.postForEntity(url("/scores/results"), result(1, 1, true, 3, 6), String.class); // 200
         rest.postForEntity(url("/scores/results"), result(2, 1, false, 5, 6), String.class); // 0
 
         PlayerStats stats = rest.getForObject(url("/scores/players/1"), PlayerStats.class);
         assertThat(stats.getGamesPlayed()).isEqualTo(2);
         assertThat(stats.getWins()).isEqualTo(1);
         assertThat(stats.getLosses()).isEqualTo(1);
-        assertThat(stats.getTotalScore()).isEqualTo(175);
-        assertThat(stats.getBestScore()).isEqualTo(175);
-        assertThat(stats.getAverageScore()).isEqualTo(87.5); // 175 / 2
+        assertThat(stats.getTotalScore()).isEqualTo(200);
+        assertThat(stats.getBestScore()).isEqualTo(200);
+        assertThat(stats.getAverageScore()).isEqualTo(100.0); // 200 / 2
     }
 
     @Test
