@@ -34,9 +34,9 @@ class ScoreServiceTest {
 
     @Test
     void recordCalculeEtStockeLeScore() {
-        // gagne 3/6, 45 s, 6 lettres : 100 + 60 + 41 + 40 = 241
+        // gagne 3/6, 45 s, 6 lettres : base 100+60+41=201 ; x(6-2)=4 -> 804
         GameResultResponse r = service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, 45, null));
-        assertThat(r.getScore()).isEqualTo(241);
+        assertThat(r.getScore()).isEqualTo(804);
     }
 
     @Test
@@ -47,11 +47,11 @@ class ScoreServiceTest {
 
     @Test
     void maxAttemptsEtDureeInvalidesUtilisentLesDefauts() {
-        // maxAttempts=0 -> defaut 6 ; durationSeconds=0 -> stocke 0 ; score 100+60+50+40 = 250
+        // maxAttempts=0 -> defaut 6 ; durationSeconds=0 -> stocke 0 ; base 210 x4 -> 840
         GameResultResponse r = service.record(new GameResultRequest(1L, 1L, true, 3, 0, 6, 0, null));
         assertThat(r.getMaxAttempts()).isEqualTo(6);
         assertThat(r.getDurationSeconds()).isZero();
-        assertThat(r.getScore()).isEqualTo(250);
+        assertThat(r.getScore()).isEqualTo(840);
     }
 
     @Test
@@ -93,7 +93,7 @@ class ScoreServiceTest {
 
     @Test
     void statsCalculeTotalMeilleurEtMoyenneDeScore() {
-        service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, null, null));  // 200
+        service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, null, null));  // 640
         service.record(new GameResultRequest(2L, 1L, false, 6, 6, 6, null, null)); // 0
 
         PlayerStats s = service.playerStats(1L);
@@ -101,25 +101,25 @@ class ScoreServiceTest {
         assertThat(s.getWins()).isEqualTo(1);
         assertThat(s.getLosses()).isEqualTo(1);
         assertThat(s.getAverageAttempts()).isEqualTo(4.5); // (3 + 6) / 2
-        assertThat(s.getTotalScore()).isEqualTo(200);
-        assertThat(s.getBestScore()).isEqualTo(200);
-        assertThat(s.getAverageScore()).isEqualTo(100.0); // 200 / 2
+        assertThat(s.getTotalScore()).isEqualTo(640);
+        assertThat(s.getBestScore()).isEqualTo(640);
+        assertThat(s.getAverageScore()).isEqualTo(320.0); // 640 / 2
     }
 
     @Test
     void rankingTrieParPointsAvecEcartAuSuivant() {
-        service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, null, null)); // joueur 1 : 200
-        service.record(new GameResultRequest(2L, 1L, true, 5, 6, 6, null, null)); // joueur 1 : 160 -> total 360
-        service.record(new GameResultRequest(3L, 2L, true, 2, 6, 6, null, null)); // joueur 2 : 220
+        service.record(new GameResultRequest(1L, 1L, true, 3, 6, 6, null, null)); // joueur 1 : 640
+        service.record(new GameResultRequest(2L, 1L, true, 5, 6, 6, null, null)); // joueur 1 : 480 -> total 1120
+        service.record(new GameResultRequest(3L, 2L, true, 2, 6, 6, null, null)); // joueur 2 : 720
 
         List<RankingEntry> r = service.ranking();
         assertThat(r).hasSize(2);
         assertThat(r.get(0).getPlayerId()).isEqualTo(1L);
-        assertThat(r.get(0).getTotalScore()).isEqualTo(360);
+        assertThat(r.get(0).getTotalScore()).isEqualTo(1120);
         assertThat(r.get(0).getPointsToNext()).isZero(); // le 1er n'a personne devant
         assertThat(r.get(1).getPlayerId()).isEqualTo(2L);
-        assertThat(r.get(1).getTotalScore()).isEqualTo(220);
-        assertThat(r.get(1).getPointsToNext()).isEqualTo(140); // 360 - 220
+        assertThat(r.get(1).getTotalScore()).isEqualTo(720);
+        assertThat(r.get(1).getPointsToNext()).isEqualTo(400); // 1120 - 720
     }
 
     @Test

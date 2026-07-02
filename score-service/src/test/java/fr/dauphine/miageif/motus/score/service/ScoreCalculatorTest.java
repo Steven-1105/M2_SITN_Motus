@@ -4,13 +4,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// Test unitaire pur de la formule de score. Bonus longueur = 20 * 2^(longueur-5) (double par lettre).
+// Test unitaire de la formule : score = (100 + bonus essais + bonus temps) * (longueur - 2).
 class ScoreCalculatorTest {
 
     @Test
     void gagneViteAvecPeuDEssaisEtMotLong() {
-        // gagne 1/6, 20 s, 8 lettres : 100 + (6-1)*20=100 + (50-20/5=46) + 20*2^3=160 = 406
-        assertThat(ScoreCalculator.compute(true, 1, 6, 8, 20)).isEqualTo(406);
+        // gagne 1/6, 20 s, 8 lettres : base = 100 + (6-1)*20=100 + (50-20/5=46) = 246 ; x(8-2)=6 -> 1476
+        assertThat(ScoreCalculator.compute(true, 1, 6, 8, 20)).isEqualTo(1476);
     }
 
     @Test
@@ -20,42 +20,40 @@ class ScoreCalculatorTest {
 
     @Test
     void sansDureeAucunBonusTemps() {
-        // gagne 3/6, pas de duree, 6 lettres : 100 + 60 + 0 + 20*2^1=40 = 200
-        assertThat(ScoreCalculator.compute(true, 3, 6, 6, null)).isEqualTo(200);
+        // gagne 3/6, pas de duree, 6 lettres : base 160 ; x(6-2)=4 -> 640
+        assertThat(ScoreCalculator.compute(true, 3, 6, 6, null)).isEqualTo(640);
     }
 
     @Test
     void tempsLongAnnuleLeBonusTemps() {
-        // 300 s -> 0 ; gagne 6/6, 6 lettres : 100 + 0 + 0 + 40 = 140
-        assertThat(ScoreCalculator.compute(true, 6, 6, 6, 300)).isEqualTo(140);
+        // 300 s -> 0 ; gagne 6/6, 6 lettres : base 100 ; x4 -> 400
+        assertThat(ScoreCalculator.compute(true, 6, 6, 6, 300)).isEqualTo(400);
     }
 
     @Test
     void maxAttemptsNullUtiliseLaValeurParDefaut() {
-        // max null -> 6 ; gagne 3, 6 lettres : 100 + 60 + 0 + 40 = 200
-        assertThat(ScoreCalculator.compute(true, 3, null, 6, null)).isEqualTo(200);
+        // max null -> 6 ; gagne 3, 6 lettres : base 160 ; x4 -> 640
+        assertThat(ScoreCalculator.compute(true, 3, null, 6, null)).isEqualTo(640);
     }
 
     @Test
-    void motDe5LettresRecoitLeBonusDeBase() {
-        // 5 lettres -> bonus longueur de base 20 ; gagne 3/6, pas de duree : 100 + 60 + 0 + 20 = 180
-        assertThat(ScoreCalculator.compute(true, 3, 6, 5, null)).isEqualTo(180);
+    void motDe5LettresMultiplieParTrois() {
+        // 5 lettres -> x(5-2)=3 ; gagne 3/6, pas de duree : base 160 x3 -> 480
+        assertThat(ScoreCalculator.compute(true, 3, 6, 5, null)).isEqualTo(480);
     }
 
     @Test
-    void bonusLongueurDoubleAChaqueLettre() {
-        // En isolant (gagne en max essais, sans duree) : score = 100 + bonusLongueur.
-        int b5 = ScoreCalculator.compute(true, 5, 5, 5, null) - 100; // 20
-        int b6 = ScoreCalculator.compute(true, 6, 6, 6, null) - 100; // 40
-        int b7 = ScoreCalculator.compute(true, 7, 7, 7, null) - 100; // 80
-        assertThat(b5).isEqualTo(20);
-        assertThat(b6).isEqualTo(2 * b5);
-        assertThat(b7).isEqualTo(2 * b6);
+    void laLongueurMultiplieToutLeScore() {
+        // base isolee = 100 (gagne en max essais, sans duree) ; score = 100 * (longueur-2)
+        assertThat(ScoreCalculator.compute(true, 4, 4, 4, null)).isEqualTo(200); // x2
+        assertThat(ScoreCalculator.compute(true, 5, 5, 5, null)).isEqualTo(300); // x3
+        assertThat(ScoreCalculator.compute(true, 6, 6, 6, null)).isEqualTo(400); // x4
+        assertThat(ScoreCalculator.compute(true, 9, 9, 9, null)).isEqualTo(700); // x7
     }
 
     @Test
     void maxAttemptsInvalideRetombeSurLeDefaut() {
-        // maxAttempts=0 -> 6 ; duree=0 -> bonus temps 50 ; gagne 3, 6 lettres : 100 + 60 + 50 + 40 = 250
-        assertThat(ScoreCalculator.compute(true, 3, 0, 6, 0)).isEqualTo(250);
+        // maxAttempts=0 -> 6 ; duree=0 -> bonus temps 50 ; gagne 3, 6 lettres : base 210 x4 -> 840
+        assertThat(ScoreCalculator.compute(true, 3, 0, 6, 0)).isEqualTo(840);
     }
 }
