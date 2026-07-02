@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=2" />
 </head>
 <body>
   <div class="app">
@@ -102,6 +102,7 @@
   <div class="modal" id="modal-ranking" hidden>
     <div class="modal-card">
       <div class="modal-head"><h3>Classement <span class="muted small">par points</span></h3><button class="modal-close" data-close>✕</button></div>
+      <div id="rankingSummary" class="rank-summary" hidden></div>
       <ol id="rankingBody" class="ranking-list"><li class="muted small">Aucune partie pour l'instant.</li></ol>
     </div>
   </div>
@@ -112,7 +113,19 @@
     </div>
   </div>
 
+  <!-- Confirmation de deconnexion -->
+  <div class="modal" id="modal-logout" hidden>
+    <div class="modal-card modal-confirm">
+      <h3>Se déconnecter ?</h3>
+      <p class="muted" id="logoutText">Tu veux te déconnecter ?</p>
+      <div class="confirm-actions">
+        <button class="btn ghost" data-close>Annuler</button>
+        <button class="btn primary" id="logoutConfirm">Se déconnecter</button>
+      </div>
+    </div>
+  </div>
+
   <canvas id="confetti" class="confetti-canvas"></canvas>
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>
