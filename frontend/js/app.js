@@ -51,6 +51,22 @@ const KO_OWL_SVG = `<svg viewBox="0 0 80 82" aria-hidden="true">
   <text x="6" y="26" fill="#ffc800" font-size="15">✦</text><text x="64" y="22" fill="#ffc800" font-size="15">✦</text>
 </svg>`;
 
+// Mascotte qui sourit (couronne + grands yeux + sourire) pour la victoire.
+const HAPPY_OWL_SVG = `<svg viewBox="0 0 80 82" aria-hidden="true">
+  <path d="M22 26 L30 14 L38 26 Z" fill="#46a302"/><path d="M58 26 L50 14 L42 26 Z" fill="#46a302"/>
+  <rect x="18" y="24" width="44" height="46" rx="20" fill="#46a302"/>
+  <rect x="16" y="20" width="44" height="46" rx="20" fill="#58cc02"/>
+  <circle cx="26" cy="66" r="4.5" fill="#ff9bb3" opacity=".6"/>
+  <circle cx="54" cy="66" r="4.5" fill="#ff9bb3" opacity=".6"/>
+  <circle cx="27" cy="42" r="9" fill="#fff"/><circle cx="53" cy="42" r="9" fill="#fff"/>
+  <circle cx="28" cy="43" r="4.5" fill="#3c3c3c"/><circle cx="54" cy="43" r="4.5" fill="#3c3c3c"/>
+  <circle cx="29" cy="41" r="1.6" fill="#fff"/><circle cx="55" cy="41" r="1.6" fill="#fff"/>
+  <path d="M40 50 l-5 6 l10 0 z" fill="#ffb020"/>
+  <path d="M28 60 q12 10 24 0" stroke="#2b6b00" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M22 20 l5 -10 l5 8 l4 -12 l4 12 l5 -8 l5 10 z" fill="#ffc800" stroke="#e0ae00" stroke-width="1.2" stroke-linejoin="round"/>
+  <circle cx="27" cy="10" r="1.6" fill="#ff4b4b"/><circle cx="40" cy="7" r="1.6" fill="#1cb0f6"/><circle cx="53" cy="10" r="1.6" fill="#a06bff"/>
+</svg>`;
+
 // ====== player-service : retrouver (ou creer) le joueur ======
 async function resolvePlayer(pseudo) {
   pseudo = (pseudo || "").trim() || "Invité";
@@ -299,8 +315,7 @@ async function endGame(won, lastGuess, game) {
 }
 
 function renderResult(won, word, seconds, score) {
-  if (won) $("resultIcon").textContent = "🎉";
-  else $("resultIcon").innerHTML = KO_OWL_SVG;
+  $("resultIcon").innerHTML = won ? HAPPY_OWL_SVG : KO_OWL_SVG;
   $("resultTitle").textContent = won ? "Gagné !" : "Perdu…";
   $("resultWord").textContent = "Le mot était : " + word;
   $("scoreBadge").textContent = score != null ? (won ? "+" : "") + score + " points" : "";
@@ -328,14 +343,22 @@ async function refreshRanking() {
     const body = $("rankingBody");
     if (!list.length) { body.innerHTML = '<li class="muted small">Aucune partie pour l\'instant.</li>'; return; }
     body.innerHTML = "";
-    list.slice(0, 10).forEach((r, i) => {
+    const MEDALS = ["🥇", "🥈", "🥉"];
+    list.slice(0, 20).forEach((r, i) => {
       const li = document.createElement("li");
-      li.className = "rank-item" + (r.playerId === me ? " me" : "");
-      const gap = r.pointsToNext > 0 ? ` · -${r.pointsToNext}` : "";
-      li.innerHTML = `<span class="rank-pos">${i + 1}</span>
-        <span class="rank-name">${pseudoForId(r.playerId)}</span>
-        <span class="rank-meta">${r.gamesPlayed} parties${gap}</span>
-        <span class="rank-score">${r.totalScore}</span>`;
+      li.className = "rank-item" + (r.playerId === me ? " me" : "") + (i < 3 ? " top" : "");
+      const pos = i < 3 ? `<span class="medal">${MEDALS[i]}</span>` : `<span class="rank-pos">${i + 1}</span>`;
+      const winRate = r.gamesPlayed > 0 ? Math.round((r.wins / r.gamesPlayed) * 100) : 0;
+      li.innerHTML = `${pos}
+        <div class="rank-info">
+          <div class="rank-name">${pseudoForId(r.playerId)}</div>
+          <div class="rank-stats">
+            <span title="Parties jouées">🎮 <b>${r.gamesPlayed}</b> parties</span>
+            <span title="Victoires">🏆 <b>${r.wins}</b> victoires</span>
+            <span title="Taux de réussite">📈 <b>${winRate}%</b></span>
+          </div>
+        </div>
+        <div class="rank-score"><b>${r.totalScore}</b><span class="rank-score-unit">pts</span></div>`;
       body.appendChild(li);
     });
   } catch (e) { /* silencieux */ }
