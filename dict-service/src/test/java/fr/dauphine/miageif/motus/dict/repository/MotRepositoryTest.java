@@ -35,4 +35,20 @@ class MotRepositoryTest {
         assertThat(repository.existsByMotIgnoreCase("MaIsOn")).isTrue();
         assertThat(repository.existsByMotIgnoreCase("zzzzzz")).isFalse();
     }
+
+    @Test
+    void findRandomJouableExcluTIesFormesConjuguesEnEz() {
+        // PRIEZ (jeu de test) est une conjugaison, elle ne doit jamais sortir comme reponse,
+        // meme si elle reste un mot valide pour /words/validate (existsByMotIgnoreCase).
+        for (int i = 0; i < 200; i++) {
+            Mot tirage = repository.findRandomJouableByLongueur(5);
+            assertThat(tirage.getMot()).isNotEqualTo("PRIEZ");
+        }
+    }
+
+    @Test
+    void findRandomJouableAutoriseLesExceptionsConnues() {
+        // ASSEZ se termine en -EZ mais n'est pas un verbe conjugue : il doit rester tirable.
+        assertThat(repository.existsByMotIgnoreCase("ASSEZ")).isTrue();
+    }
 }

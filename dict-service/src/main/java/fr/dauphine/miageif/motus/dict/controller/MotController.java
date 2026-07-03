@@ -32,7 +32,7 @@ public class MotController {
     // Appele par game-service pour demarrer une partie.
     @GetMapping("/random")
     public WordResponse motAleatoire(@RequestParam(defaultValue = "6") int length) {
-        Mot choisi = repository.findRandomByLongueur(length);
+        Mot choisi = repository.findRandomJouableByLongueur(length);
         if (choisi == null) {
             throw new WordNotFoundException("Aucun mot de longueur " + length);
         }
