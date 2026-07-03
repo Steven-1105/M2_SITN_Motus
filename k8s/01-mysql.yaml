@@ -1,0 +1,75 @@
+# =====================================================================
+#  MySQL pour Minikube / Kubernetes
+#  - 1 seul serveur MySQL (comme docker-compose), une base par service
+#  - Secret : mot de passe    | PVC : les donnees survivent au redemarrage
+#  - Service "mysql" : les microservices y accedent par ce nom (DNS interne)
+# =====================================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: motus-db
+type: Opaque
+stringData:
+  # En vrai on ne met JAMAIS le mot de passe en clair ; ici c'est un demo local.
+  MYSQL_ROOT_PASSWORD: "root"
+---
+# Reservation de stockage persistant : les scores/mots ne sont pas perdus
+# quand le pod MySQL redemarre.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1                       # une base = une seule instance (etat)
+  selector:
+    matchLabels: { app: mysql }
+  strategy:
+    type: Recreate                  # pas de 2 MySQL en meme temps sur le meme disque
+  template:
+    metadata:
+      labels: { app: mysql }
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: motus-db, key: MYSQL_ROOT_PASSWORD }
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:           # "prete a recevoir des requetes ?"
+            exec:
+              command: ["mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 20
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql                       # <-- nom DNS interne : "mysql:3306"
+spec:
+  selector: { app: mysql }
+  ports:
+    - port: 3306
+      targetPort: 3306
+  clusterIP: None                   # headless : suffisant pour une base unique

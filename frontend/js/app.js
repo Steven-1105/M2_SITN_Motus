@@ -22,6 +22,34 @@ const elBanner = $("banner");
 function showBanner(m) { elBanner.textContent = m; elBanner.hidden = false; }
 function hideBanner() { elBanner.hidden = true; }
 function show(screen) { elSetup.hidden = screen !== "setup"; elPlay.hidden = screen !== "play"; elResult.hidden = screen !== "result"; }
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// ====== Le pendu (la potence se construit, la mascotte finit KO) ======
+function penduReset() {
+  const p = $("pendu"); if (!p) return;
+  p.classList.remove("ko");
+  p.querySelectorAll(".pt").forEach((el) => el.classList.remove("on"));
+}
+function updatePendu(wrong, ko = false) {
+  const p = $("pendu"); if (!p) return;
+  const revealed = ko ? 5 : Math.min(5, wrong);
+  p.querySelectorAll(".pt").forEach((el) => { if (Number(el.dataset.stage) <= revealed) el.classList.add("on"); });
+  if (ko || wrong >= state.maxAttempts) {
+    p.querySelectorAll(".pt").forEach((el) => el.classList.add("on"));
+    p.classList.add("ko");
+  }
+}
+const KO_OWL_SVG = `<svg viewBox="0 0 80 82" aria-hidden="true">
+  <path d="M22 26 L30 14 L38 26 Z" fill="#46a302"/><path d="M58 26 L50 14 L42 26 Z" fill="#46a302"/>
+  <rect x="18" y="24" width="44" height="46" rx="20" fill="#46a302"/>
+  <rect x="16" y="20" width="44" height="46" rx="20" fill="#58cc02"/>
+  <path d="M24 42 l11 9 M35 42 l-11 9" stroke="#3c3c3c" stroke-width="3" stroke-linecap="round"/>
+  <path d="M45 42 l11 9 M56 42 l-11 9" stroke="#3c3c3c" stroke-width="3" stroke-linecap="round"/>
+  <path d="M30 56 q8 6 16 0" stroke="#2b6b00" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M34 48 l4 6 l4 -6 z" fill="#ffb020"/>
+  <ellipse cx="38" cy="62" rx="5" ry="6" fill="#ff6b9d"/>
+  <text x="6" y="26" fill="#ffc800" font-size="15">✦</text><text x="64" y="22" fill="#ffc800" font-size="15">✦</text>
+</svg>`;
 
 // ====== player-service : retrouver (ou creer) le joueur ======
 async function resolvePlayer(pseudo) {
@@ -106,6 +134,7 @@ async function startGame() {
   buildBoard();
   buildKeyboard();
   keyState = {};
+  penduReset();
   primeRow();
   show("play");
   startTimer();
@@ -204,9 +233,10 @@ async function finishRowThenContinue(guess) {
   try { game = await (await fetch(`${GAME}/games/${state.gameId}`)).json(); } catch (e) { game = null; }
   const statut = game ? game.statut : "EN_COURS";
   if (statut === "GAGNE") { endGame(true, guess, game); return; }
-  if (statut === "PERDU") { endGame(false, guess, game); return; }
+  if (statut === "PERDU") { updatePendu(state.maxAttempts, true); endGame(false, guess, game); return; }
   state.row++;
   $("attemptLabel").textContent = state.row + 1;
+  updatePendu(state.row);
   elMessage.textContent = "";
   primeRow();
   submitting = false;
@@ -251,6 +281,7 @@ function startTimer() {
 async function endGame(won, lastGuess, game) {
   state.finished = true; submitting = false;
   clearInterval(state.timer);
+  if (!won) await sleep(1200); // laisse le temps de voir la mascotte KO sur la potence
   const seconds = Math.round((Date.now() - state.startTime) / 1000);
   const word = (game && game.motMystere && !game.motMystere.includes("*")) ? game.motMystere : lastGuess;
   let score = null;
@@ -265,7 +296,8 @@ async function endGame(won, lastGuess, game) {
 }
 
 function renderResult(won, word, seconds, score) {
-  $("resultIcon").textContent = won ? "🎉" : "😶‍🌫️";
+  if (won) $("resultIcon").textContent = "🎉";
+  else $("resultIcon").innerHTML = KO_OWL_SVG;
   $("resultTitle").textContent = won ? "Gagné !" : "Perdu…";
   $("resultWord").textContent = "Le mot était : " + word;
   $("scoreBadge").textContent = score != null ? (won ? "+" : "") + score + " points" : "";

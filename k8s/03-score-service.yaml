@@ -1,0 +1,53 @@
+# =====================================================================
+#  score-service  (calcul du score, classement, statistiques)
+# =====================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: score-service
+  labels: { app: score-service }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: score-service }
+  template:
+    metadata:
+      labels: { app: score-service }
+    spec:
+      containers:
+        - name: score-service
+          image: score-service:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8084
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/motus_scores?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: motus-db, key: MYSQL_ROOT_PASSWORD }
+          resources:
+            requests: { cpu: "150m", memory: "300Mi" }
+            limits:   { cpu: "700m", memory: "600Mi" }
+          startupProbe:
+            httpGet: { path: /actuator/health, port: 8084 }
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8084 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8084 }
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: score-service                  # <-- game pousse les scores vers "http://score-service:8084"
+spec:
+  selector: { app: score-service }
+  ports:
+    - port: 8084
+      targetPort: 8084

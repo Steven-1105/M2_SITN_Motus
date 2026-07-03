@@ -1,0 +1,60 @@
+# =====================================================================
+#  game-service  (algo Motus, essais, statut de partie)
+#  Particularite : il appelle dict-service et pousse le score vers score-service
+#  -> il reçoit leurs URLs internes par variables d'environnement (comme docker-compose)
+# =====================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game-service
+  labels: { app: game-service }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: game-service }
+  template:
+    metadata:
+      labels: { app: game-service }
+    spec:
+      containers:
+        - name: game-service
+          image: game-service:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/motus_games?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: motus-db, key: MYSQL_ROOT_PASSWORD }
+            # Decouverte des autres services par leur nom DNS interne :
+            - name: DICT_SERVICE_URL
+              value: "http://dict-service:8083"
+            - name: SCORE_SERVICE_URL
+              value: "http://score-service:8084"
+          resources:
+            requests: { cpu: "150m", memory: "300Mi" }
+            limits:   { cpu: "700m", memory: "600Mi" }
+          startupProbe:
+            httpGet: { path: /actuator/health, port: 8082 }
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8082 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8082 }
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-service
+spec:
+  selector: { app: game-service }
+  ports:
+    - port: 8082
+      targetPort: 8082

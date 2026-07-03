@@ -1,0 +1,55 @@
+# =====================================================================
+#  dict-service  (dictionnaire : mot aleatoire + validation)
+#  Deployment = les pods (instances) | Service = l'adresse interne stable
+# =====================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dict-service
+  labels: { app: dict-service }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: dict-service }
+  template:
+    metadata:
+      labels: { app: dict-service }
+    spec:
+      containers:
+        - name: dict-service
+          image: dict-service:1.0      # image construite en local dans Minikube
+          imagePullPolicy: IfNotPresent # ne pas aller la chercher sur Internet
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/motus_dictionary?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: motus-db, key: MYSQL_ROOT_PASSWORD }
+          resources:                   # requests = necessaire au HPA (auto-scaling)
+            requests: { cpu: "150m", memory: "320Mi" }
+            limits:   { cpu: "700m", memory: "640Mi" }
+          # dict charge 132k mots au demarrage -> on lui laisse le temps de demarrer
+          startupProbe:
+            httpGet: { path: /actuator/health, port: 8083 }
+            periodSeconds: 5
+            failureThreshold: 60       # jusqu'a 5 min avant d'abandonner
+          readinessProbe:              # "peut recevoir du trafic ?"
+            httpGet: { path: /actuator/health, port: 8083 }
+            periodSeconds: 10
+          livenessProbe:               # "encore vivant ? sinon on le redemarre"
+            httpGet: { path: /actuator/health, port: 8083 }
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dict-service                   # <-- game l'appelle via "http://dict-service:8083"
+spec:
+  selector: { app: dict-service }
+  ports:
+    - port: 8083
+      targetPort: 8083

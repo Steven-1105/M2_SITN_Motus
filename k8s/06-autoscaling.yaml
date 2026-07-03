@@ -1,0 +1,26 @@
+# =====================================================================
+#  Auto-scaling (HPA = HorizontalPodAutoscaler)
+#  Kubernetes ajoute/retire automatiquement des pods de game-service
+#  selon la charge CPU. C'est LA demo "scalabilite / elasticite" du cours.
+#
+#  Pre-requis : metrics-server actif   ->  minikube addons enable metrics-server
+#  (et les "resources.requests.cpu" definis dans les Deployments : deja fait)
+# =====================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: game-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: game-service
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70      # au-dela de 70% CPU moyen -> +1 pod
