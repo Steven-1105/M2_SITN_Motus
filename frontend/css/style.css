@@ -23,8 +23,12 @@
 body {
   font-family: var(--font);
   color: var(--text);
-  background: var(--bg2);
   min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 0%, #eaf7ff 0%, transparent 45%),
+    radial-gradient(circle at 90% 15%, #eafbe0 0%, transparent 40%),
+    radial-gradient(circle at 60% 90%, #fff4e0 0%, transparent 40%),
+    #fafcff;
 }
 
 .app { max-width: 1080px; margin: 0 auto; padding: 24px 18px 40px; }
@@ -69,20 +73,49 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 .muted { color: var(--muted); font-weight: 700; }
 .small { font-size: 13px; }
 
-/* ---------- Setup ---------- */
-.setup { display: flex; flex-direction: column; gap: 18px; margin: auto 0; text-align: center; align-items: center; }
-.levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; width: 100%; }
+/* ---------- Setup (accueil) ---------- */
+.setup { display: flex; flex-direction: column; gap: 22px; margin: auto 0; text-align: center; align-items: center; padding: 6px 0; }
+
+/* Hero : la mascotte + le titre d'accueil */
+.hero { display: flex; align-items: center; gap: 18px; padding: 18px 22px; width: 100%; background: linear-gradient(135deg, #f4fbef 0%, #eaf7ff 100%); border-radius: 22px; border: 2px solid var(--green-l); }
+.hero-mascot { width: 88px; height: 88px; flex: none; filter: drop-shadow(0 6px 12px rgba(88,204,2,.25)); }
+.hero-text { text-align: left; flex: 1; }
+.hero-text h2 { font-size: 22px; font-weight: 900; color: var(--green-d); margin-bottom: 4px; line-height: 1.2; }
+.hero-text p { color: var(--text); font-size: 14px; font-weight: 700; opacity: .75; margin: 0; }
+.setup-hint { margin-top: -8px; }
+
+/* Les 5 niveaux : UNE seule ligne, chacun avec sa couleur (bleu -> rouge = plus dur) */
+.levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 100%; }
 .level {
-  background: #fff; border: 2px solid var(--border); border-bottom-width: 4px;
-  border-radius: 16px; padding: 16px 12px; cursor: pointer; text-align: center;
-  transition: transform .1s, border-color .15s, background .15s;
+  background: #fff; border: 2px solid var(--border); border-bottom-width: 5px;
+  border-radius: 18px; padding: 14px 6px 12px; cursor: pointer; text-align: center;
+  transition: transform .12s, border-color .15s, box-shadow .15s;
+  position: relative; overflow: hidden;
 }
-.level:hover { border-color: var(--blue); transform: translateY(-2px); }
-.level.selected { border-color: var(--green); background: var(--green-l); }
-.level .n { font-size: 28px; font-weight: 900; color: var(--text); }
-.level .lbl { font-size: 12px; color: var(--muted); font-weight: 700; }
-.level .stars { color: var(--yellow); font-size: 14px; letter-spacing: 1px; }
-.loading { color: var(--muted); padding: 10px; font-weight: 700; }
+.level::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 6px; background: var(--lv-color, var(--green)); }
+.level.lv-5 { --lv-color: #1cb0f6; --lv-tint: #e6f5fd; }
+.level.lv-6 { --lv-color: #58cc02; --lv-tint: #eaf7db; }
+.level.lv-7 { --lv-color: #ffc800; --lv-tint: #fff4c8; }
+.level.lv-8 { --lv-color: #ff9600; --lv-tint: #ffe8cc; }
+.level.lv-9 { --lv-color: #ff4b4b; --lv-tint: #ffd8d8; }
+.level:hover { transform: translateY(-3px); border-bottom-color: var(--lv-color); box-shadow: 0 6px 14px rgba(0,0,0,.06); }
+.level.selected { border-color: var(--lv-color); background: var(--lv-tint); }
+.level .n { font-size: 30px; font-weight: 900; color: var(--lv-color); margin-top: 4px; line-height: 1; }
+.level .lbl { font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 2px; }
+.level .stars { color: var(--lv-color); font-size: 11px; letter-spacing: 1.5px; margin-top: 6px; }
+
+.loading { color: var(--muted); padding: 10px; font-weight: 700; grid-column: 1 / -1; }
+.btn.big { padding: 16px 34px; font-size: 17px; }
+
+@media (max-width: 460px) {
+  .hero { flex-direction: column; text-align: center; gap: 10px; padding: 16px; }
+  .hero-text { text-align: center; }
+  .hero-mascot { width: 72px; height: 72px; }
+  .level { padding: 12px 4px 10px; border-radius: 14px; }
+  .level .n { font-size: 24px; }
+  .level .lbl { font-size: 10px; }
+  .level .stars { font-size: 9px; letter-spacing: 1px; }
+}
 
 /* ---------- Boutons 3D ---------- */
 .btn {

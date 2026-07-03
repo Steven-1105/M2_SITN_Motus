@@ -100,11 +100,13 @@ async function loadLevels() {
     const levels = await (await fetch(`${DICT}/words/lengths`)).json();
     hideBanner();
     elLevels.innerHTML = "";
-    levels.forEach((lv) => {
+    // Uniquement les longueurs 5-9 (le back les expose deja, ceinture + bretelles)
+    const jouables = levels.filter((lv) => lv.length >= 5 && lv.length <= 9);
+    jouables.forEach((lv) => {
       const stars = "★".repeat(Math.max(1, lv.length - 4));
       const div = document.createElement("div");
-      div.className = "level";
-      div.innerHTML = `<div class="n">${lv.length}</div><div class="lbl">lettres · ${lv.count} mots</div><div class="stars">${stars}</div>`;
+      div.className = `level lv-${lv.length}`;
+      div.innerHTML = `<div class="n">${lv.length}</div><div class="lbl">lettres</div><div class="stars">${stars}</div>`;
       div.onclick = () => {
         document.querySelectorAll(".level").forEach((e) => e.classList.remove("selected"));
         div.classList.add("selected");

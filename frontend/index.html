@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=5" />
+  <link rel="stylesheet" href="css/style.css?v=6" />
 </head>
 <body>
   <div class="app">
@@ -53,10 +53,32 @@
       <section class="card game">
         <!-- Écran de sélection -->
         <div id="setup" class="setup">
-          <h2>Choisis ton niveau</h2>
-          <p class="muted">Plus le mot est long, plus c'est difficile… et plus ça rapporte de points&nbsp;!</p>
+          <div class="hero">
+            <svg class="hero-mascot" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="62" r="52" fill="#eaf3de"/>
+              <path d="M22 40 L34 22 L46 42 Z" fill="#46a302"/>
+              <path d="M98 40 L86 22 L74 42 Z" fill="#46a302"/>
+              <rect x="18" y="38" width="84" height="72" rx="34" fill="#46a302"/>
+              <rect x="14" y="34" width="84" height="72" rx="34" fill="#58cc02"/>
+              <circle cx="34" cy="98" r="6" fill="#ff9bb3" opacity=".7"/>
+              <circle cx="78" cy="98" r="6" fill="#ff9bb3" opacity=".7"/>
+              <circle cx="34" cy="66" r="13" fill="#fff"/>
+              <circle cx="78" cy="66" r="13" fill="#fff"/>
+              <circle cx="36" cy="68" r="6" fill="#3c3c3c"/>
+              <circle cx="80" cy="68" r="6" fill="#3c3c3c"/>
+              <circle cx="38" cy="65" r="2" fill="#fff"/>
+              <circle cx="82" cy="65" r="2" fill="#fff"/>
+              <path d="M50 82 l6 8 l10 0 z" fill="#ffb020"/>
+              <path d="M42 92 q14 12 28 0" stroke="#2b6b00" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="hero-text">
+              <h2>Prêt à trouver le mot mystère&nbsp;?</h2>
+              <p>Choisis ta difficulté pour commencer.</p>
+            </div>
+          </div>
           <div id="levels" class="levels"><div class="loading">Chargement des niveaux…</div></div>
-          <button id="startBtn" class="btn primary" disabled>Commencer la partie</button>
+          <div class="setup-hint muted small">Plus le mot est long, plus ça rapporte de points&nbsp;!</div>
+          <button id="startBtn" class="btn primary big" disabled>▶  Commencer la partie</button>
         </div>
 
         <!-- Écran de jeu -->
@@ -172,6 +194,6 @@
   </div>
 
   <canvas id="confetti" class="confetti-canvas"></canvas>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>
