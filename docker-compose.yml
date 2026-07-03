@@ -1,0 +1,88 @@
+# Lance tout le back Motus d'une commande :  docker compose up --build
+# - un seul serveur MySQL, une base par service (createDatabaseIfNotExist)
+# - les services se parlent par leur nom de service sur le reseau "motus"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: motus-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"            # 3307 cote hote (evite le conflit avec un MySQL local sur 3306)
+    volumes:
+      - motus-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [motus]
+
+  dict-service:
+    build: ./dict-service
+    container_name: motus-dict
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/motus_dictionary?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8083:8083"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+    networks: [motus]
+
+  score-service:
+    build: ./score-service
+    container_name: motus-score
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/motus_scores?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8084:8084"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+    networks: [motus]
+
+  player-service:
+    build: ./player-service
+    container_name: motus-player
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/motus_players?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - "8081:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+    networks: [motus]
+
+  game-service:
+    build: ./game-service
+    container_name: motus-game
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/motus_games?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      DICT_SERVICE_URL: "http://dict-service:8083"     # game appelle dict par son nom de service
+      SCORE_SERVICE_URL: "http://score-service:8084"   # et pousse les scores vers score
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+    networks: [motus]
+
+volumes:
+  motus-mysql-data:
+
+networks:
+  motus:

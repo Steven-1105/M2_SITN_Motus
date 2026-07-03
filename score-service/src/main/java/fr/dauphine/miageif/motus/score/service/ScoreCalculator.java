@@ -2,19 +2,20 @@ package fr.dauphine.miageif.motus.score.service;
 
 // Calcul du score d'une partie (echelle /10).
 //
-//   score = 100  +  (maxEssais - essais) * 20  +  max(0, 50 - secondes/5)  +  (longueur - 5) * 15
-//           base       bonus essais                 bonus temps                  bonus longueur (niveau)
+//   base   = 100  +  (maxEssais - essais) * 20  +  max(0, 50 - secondes/5)
+//            victoire     bonus essais               bonus temps
+//   score  = base * (longueur - 2)      -> la LONGUEUR multiplie tous les points.
 //
-// La longueur du mot = la difficulte (niveau) : plus le mot est long, plus ca rapporte.
-// Une partie perdue vaut 0. Si la duree n'est pas fournie, le bonus temps vaut 0 (pas de triche).
+// Multiplicateur selon la longueur : 4=x2, 5=x3, 6=x4, 7=x5, 8=x6, 9=x7.
+// Un mot plus long double (au minimum) les points gagnes ; plus il est long, plus ca compte.
+// Une partie perdue vaut 0. Si la duree n'est pas fournie, le bonus temps vaut 0.
 public final class ScoreCalculator {
 
     public static final int BASE_VICTOIRE = 100;
     public static final int BONUS_PAR_ESSAI_ECONOMISE = 20;
     public static final int BONUS_TEMPS_MAX = 50;
     public static final int SECONDES_PAR_POINT = 5;
-    public static final int BONUS_PAR_LETTRE_SUP = 15;
-    public static final int LONGUEUR_REFERENCE = 5;
+    public static final int LONGUEUR_NEUTRE = 2;   // longueur pour laquelle le multiplicateur vaut 0
     public static final int MAX_ESSAIS_DEFAUT = 6;
 
     private ScoreCalculator() {
@@ -35,8 +36,8 @@ public final class ScoreCalculator {
             bonusTemps = Math.max(0, BONUS_TEMPS_MAX - secondes / SECONDES_PAR_POINT);
         }
 
-        int bonusLongueur = Math.max(0, wordLength - LONGUEUR_REFERENCE) * BONUS_PAR_LETTRE_SUP;
-
-        return BASE_VICTOIRE + bonusEssais + bonusTemps + bonusLongueur;
+        int base = BASE_VICTOIRE + bonusEssais + bonusTemps;
+        int multiplicateur = Math.max(1, wordLength - LONGUEUR_NEUTRE);
+        return base * multiplicateur;
     }
 }

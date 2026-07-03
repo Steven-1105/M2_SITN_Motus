@@ -5,11 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-// Entite JPA representant un mot du dictionnaire (cf. cours : TauxChange)
+// Entite JPA representant un mot du dictionnaire (cf. cours : TauxChange).
+// Index sur "longueur" : les recherches par longueur restent rapides avec 130k+ mots.
 @Entity
-@Table(name = "mot")
+@Table(name = "mot", indexes = @Index(name = "idx_mot_longueur", columnList = "longueur"))
 public class Mot {
 
     @Id

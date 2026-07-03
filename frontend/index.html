@@ -5,20 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Motus — le jeu de mots</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css?v=3" />
 </head>
 <body>
-  <div class="aurora"></div>
-
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <span class="logo">MOTUS</span>
-        <span class="tagline">Trouve le mot mystère</span>
+        <svg class="logo-mascot" viewBox="0 0 120 116" aria-hidden="true">
+          <rect x="14" y="26" width="92" height="84" rx="26" fill="#46A302" />
+          <rect x="14" y="16" width="92" height="84" rx="26" fill="#58CC02" />
+          <circle cx="46" cy="54" r="13" fill="#fff" />
+          <circle cx="78" cy="54" r="13" fill="#fff" />
+          <circle cx="49" cy="56" r="5.5" fill="#3c3c3c" />
+          <circle cx="81" cy="56" r="5.5" fill="#3c3c3c" />
+          <circle cx="47" cy="53" r="1.8" fill="#fff" />
+          <circle cx="79" cy="53" r="1.8" fill="#fff" />
+          <path d="M48 78 Q60 90 72 78" stroke="#2b6b00" stroke-width="4" fill="none" stroke-linecap="round" />
+          <circle cx="34" cy="72" r="6" fill="#ff9bb3" opacity=".7" />
+          <circle cx="90" cy="72" r="6" fill="#ff9bb3" opacity=".7" />
+        </svg>
+        <div class="brand-text">
+          <span class="logo">Motus</span>
+          <span class="tagline">trouve le mot mystère</span>
+        </div>
       </div>
-      <div class="player">
-        <label for="pseudo">Joueur</label>
+      <div class="header-right">
         <input id="pseudo" type="text" placeholder="ton pseudo" maxlength="16" autocomplete="off" />
+        <div class="tools">
+          <button class="tool-btn" data-modal="stats" title="Mes statistiques" aria-label="Statistiques">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><line x1="7" y1="20" x2="7" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="17" y1="20" x2="17" y2="15"/></svg>
+          </button>
+          <button class="tool-btn" data-modal="ranking" title="Classement" aria-label="Classement">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M9 13.5 7.5 21 12 18.2 16.5 21 15 13.5"/></svg>
+          </button>
+          <button class="tool-btn" data-modal="history" title="Historique de mes parties" aria-label="Historique">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -29,7 +54,7 @@
         <!-- Écran de sélection -->
         <div id="setup" class="setup">
           <h2>Choisis ton niveau</h2>
-          <p class="muted">Plus le mot est long, plus c'est difficile… et plus ça rapporte de points.</p>
+          <p class="muted">Plus le mot est long, plus c'est difficile… et plus ça rapporte de points&nbsp;!</p>
           <div id="levels" class="levels"><div class="loading">Chargement des niveaux…</div></div>
           <button id="startBtn" class="btn primary" disabled>Commencer la partie</button>
         </div>
@@ -39,9 +64,53 @@
           <div class="play-head">
             <span class="chip"><b id="levelLabel">6</b> lettres</span>
             <span class="chip">essai <b id="attemptLabel">1</b>/<span id="maxLabel">6</span></span>
-            <span class="chip timer"><i class="ic">⏱</i><b id="timer">0:00</b></span>
+            <span class="chip timer"><b id="timer">0:00</b></span>
             <button id="quitBtn" class="chip quit" title="Abandonner">✕</button>
           </div>
+
+          <!-- Le pendu : la potence se construit a chaque erreur, la mascotte finit KO -->
+          <div id="pendu" class="pendu" aria-hidden="true">
+            <svg viewBox="0 0 200 168" class="pendu-svg">
+              <!-- Potence (bois) -->
+              <rect id="p-base" class="pt wood" data-stage="1" x="14" y="152" width="124" height="9" rx="4"/>
+              <rect id="p-pole" class="pt wood" data-stage="2" x="30" y="16" width="10" height="140" rx="4"/>
+              <rect id="p-beam" class="pt wood" data-stage="3" x="30" y="16" width="104" height="10" rx="4"/>
+              <rect id="p-rope" class="pt rope" data-stage="4" x="127" y="24" width="4" height="27" rx="2"/>
+              <!-- Mascotte accrochee (apparait a l'avant-derniere erreur) -->
+              <g id="p-mascot" class="pt mascot" data-stage="5">
+                <path d="M114 52 L120 40 L127 52 Z" fill="#46a302"/>
+                <path d="M142 52 L136 40 L129 52 Z" fill="#46a302"/>
+                <rect x="112" y="54" width="34" height="40" rx="15" fill="#46a302"/>
+                <rect x="110" y="50" width="36" height="40" rx="16" fill="#58cc02"/>
+                <circle cx="122" cy="70" r="4" fill="#ff9bb3" opacity=".6"/>
+                <circle cx="134" cy="70" r="4" fill="#ff9bb3" opacity=".6"/>
+                <!-- Visage normal (inquiet) -->
+                <g id="face-normal">
+                  <circle cx="121" cy="66" r="7.5" fill="#fff"/>
+                  <circle cx="135" cy="66" r="7.5" fill="#fff"/>
+                  <circle cx="121" cy="67" r="3.2" fill="#3c3c3c"/>
+                  <circle cx="135" cy="67" r="3.2" fill="#3c3c3c"/>
+                  <path d="M120 83 q8 -5 16 0" stroke="#2b6b00" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                  <path d="M150 60 q4 6 0 10 q-4 -4 0 -10 z" fill="#8fd0ff"/>
+                </g>
+                <!-- Visage KO -->
+                <g id="face-ko">
+                  <path d="M116 62 l9 8 M125 62 l-9 8" stroke="#3c3c3c" stroke-width="2.6" stroke-linecap="round"/>
+                  <path d="M131 62 l9 8 M140 62 l-9 8" stroke="#3c3c3c" stroke-width="2.6" stroke-linecap="round"/>
+                  <path d="M120 82 q8 6 16 0" stroke="#2b6b00" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                  <ellipse cx="128" cy="88" rx="4.5" ry="5.5" fill="#ff6b9d"/>
+                </g>
+                <path d="M125 72 l3 5 l3 -5 z" fill="#ffb020"/>
+                <path d="M122 92 l0 6 M134 92 l0 6" stroke="#ffb020" stroke-width="2.6" stroke-linecap="round"/>
+                <g class="stars">
+                  <text x="103" y="52" class="star">✦</text>
+                  <text x="150" y="46" class="star">✦</text>
+                  <text x="152" y="66" class="star">✦</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+
           <div id="board" class="board" aria-label="grille de jeu"></div>
           <div id="message" class="message" role="status"></div>
           <div id="keyboard" class="keyboard"></div>
@@ -55,30 +124,52 @@
           <div id="scoreBadge" class="score-badge"></div>
           <p id="resultDetail" class="muted"></p>
           <div class="result-actions">
-            <a id="defBtn" class="btn ghost" target="_blank" rel="noopener">📖 Définition du mot</a>
+            <a id="defBtn" class="btn ghost" target="_blank" rel="noopener">Définition du mot</a>
             <button id="againBtn" class="btn primary">Rejouer</button>
           </div>
         </div>
       </section>
-
-      <aside class="sidebar">
-        <section class="card stats">
-          <h3>Tes statistiques</h3>
-          <div id="statsBody" class="stats-grid"><p class="muted small">Joue une partie pour voir tes stats.</p></div>
-        </section>
-        <section class="card ranking">
-          <h3>Classement <span class="muted small">par points</span></h3>
-          <ol id="rankingBody" class="ranking-list"><li class="muted small">Aucune partie pour l'instant.</li></ol>
-        </section>
-      </aside>
     </main>
 
     <footer class="foot">
-      Motus · M2 MIAGE SITN · propulsé par <b>dict-service</b> + <b>score-service</b>
+      Motus · M2 MIAGE SITN · propulsé par <b>player</b> · <b>game</b> · <b>dict</b> · <b>score</b>
     </footer>
   </div>
 
+  <!-- Fenêtres (widgets) ouvertes par les icônes -->
+  <div class="modal" id="modal-stats" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><h3>Tes statistiques</h3><button class="modal-close" data-close>✕</button></div>
+      <div id="statsBody" class="stats-grid"><p class="muted small">Joue une partie pour voir tes stats.</p></div>
+    </div>
+  </div>
+  <div class="modal" id="modal-ranking" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><h3>Classement <span class="muted small">par points</span></h3><button class="modal-close" data-close>✕</button></div>
+      <div id="rankingSummary" class="rank-summary" hidden></div>
+      <ol id="rankingBody" class="ranking-list"><li class="muted small">Aucune partie pour l'instant.</li></ol>
+    </div>
+  </div>
+  <div class="modal" id="modal-history" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><h3>Historique de tes parties</h3><button class="modal-close" data-close>✕</button></div>
+      <div id="historyBody" class="history-list"><p class="muted small">Aucune partie jouée pour l'instant.</p></div>
+    </div>
+  </div>
+
+  <!-- Confirmation de deconnexion -->
+  <div class="modal" id="modal-logout" hidden>
+    <div class="modal-card modal-confirm">
+      <h3>Se déconnecter ?</h3>
+      <p class="muted" id="logoutText">Tu veux te déconnecter ?</p>
+      <div class="confirm-actions">
+        <button class="btn ghost" data-close>Annuler</button>
+        <button class="btn primary" id="logoutConfirm">Se déconnecter</button>
+      </div>
+    </div>
+  </div>
+
   <canvas id="confetti" class="confetti-canvas"></canvas>
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>
