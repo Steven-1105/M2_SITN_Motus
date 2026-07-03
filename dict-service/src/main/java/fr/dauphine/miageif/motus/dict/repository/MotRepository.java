@@ -27,6 +27,10 @@ public interface MotRepository extends JpaRepository<Mot, Long> {
     Mot findRandomJouableByLongueur(@Param("longueur") int longueur);
 
     // Nombre de mots par longueur, sans charger les mots.
-    @Query("SELECT m.longueur, COUNT(m) FROM Mot m GROUP BY m.longueur ORDER BY m.longueur")
+    // On expose uniquement les niveaux JOUABLES (5 a 9 lettres) : les mots de 4 lettres
+    // sont trop faciles a deviner et polluent le classement.
+    @Query("SELECT m.longueur, COUNT(m) FROM Mot m "
+            + "WHERE m.longueur BETWEEN 5 AND 9 "
+            + "GROUP BY m.longueur ORDER BY m.longueur")
     List<Object[]> countByLongueur();
 }
