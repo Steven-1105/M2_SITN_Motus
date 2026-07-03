@@ -155,12 +155,16 @@ function buildBoard() {
 }
 function tile(r, c) { return elBoard.querySelector(`.tile[data-row="${r}"][data-col="${c}"]`); }
 
-// La 1re lettre est DONNEE (affichee), mais on peut la surcharger. Si on ne met rien, on la voit.
+// La 1re lettre est donnee en INDICE (fantome, non validee). Le joueur doit la taper.
 function primeRow() {
-  state.col = 1;
+  state.col = 0;
+  for (let c = 0; c < state.length; c++) {
+    const t = tile(state.row, c);
+    t.textContent = ""; t.classList.remove("filled", "given", "hint");
+  }
   const t = tile(state.row, 0);
   t.textContent = state.firstLetter;
-  t.classList.add("given");
+  t.classList.add("hint");           // affichage transparent, ne compte pas comme saisi
 }
 
 // ====== Saisie ======
@@ -168,7 +172,7 @@ function onKey(letter) {
   if (state.finished || elPlay.hidden || state.col >= state.length) return;
   state.board[state.row][state.col] = letter;
   const t = tile(state.row, state.col);
-  t.textContent = letter; t.classList.remove("given"); t.classList.add("filled");
+  t.textContent = letter; t.classList.remove("hint"); t.classList.add("filled");
   state.col++;
 }
 function onBackspace() {
@@ -176,18 +180,17 @@ function onBackspace() {
   state.col--;
   state.board[state.row][state.col] = "";
   const t = tile(state.row, state.col);
-  if (state.col === 0) { t.textContent = state.firstLetter; t.classList.remove("filled"); t.classList.add("given"); }
-  else { t.textContent = ""; t.classList.remove("filled"); }
+  t.textContent = ""; t.classList.remove("filled");
+  if (state.col === 0) { t.textContent = state.firstLetter; t.classList.add("hint"); } // on ré-affiche l'indice
 }
 let submitting = false;
 async function onEnter() {
   if (state.finished || submitting) return;
-  for (let i = 1; i < state.length; i++) {
+  for (let i = 0; i < state.length; i++) {
     if (!state.board[state.row][i]) { flashMessage("Complète le mot."); return; }
   }
-  // position 0 : la lettre donnee si non surchargee
-  let guess = (state.board[state.row][0] || state.firstLetter);
-  for (let i = 1; i < state.length; i++) guess += state.board[state.row][i];
+  let guess = "";
+  for (let i = 0; i < state.length; i++) guess += state.board[state.row][i];
   guess = guess.toUpperCase();
 
   submitting = true;
@@ -221,7 +224,7 @@ function revealRow(results, guess) {
     t.textContent = guess[c];
     setTimeout(() => {
       t.classList.add("reveal");
-      setTimeout(() => { t.classList.remove("filled", "given"); t.classList.add(cls); paintKey(guess[c], cls); }, 250);
+      setTimeout(() => { t.classList.remove("filled", "given", "hint"); t.classList.add(cls); paintKey(guess[c], cls); }, 250);
     }, c * 120);
   });
   const delay = state.length * 120 + 320;
@@ -355,21 +358,37 @@ async function refreshStats() {
 async function refreshHistory() {
   const me = state.playerId || (await resolvePlayer(pseudoInput.value));
   if (me == null) return;
+  const body = $("historyBody");
   try {
     const games = await (await fetch(`${SCORE}/scores/games?playerId=${me}`)).json();
-    const body = $("historyBody");
     if (!games.length) { body.innerHTML = '<p class="muted small">Aucune partie jouée pour l\'instant.</p>'; return; }
+    // On recupere le mot mystere de chaque partie via game-service (parallele)
+    const words = await Promise.all(games.map(async (g) => {
+      try { const r = await fetch(`${GAME}/games/${g.gameId}`); if (!r.ok) return null;
+            const j = await r.json(); return (j.motMystere || "").includes("*") ? null : j.motMystere; }
+      catch (e) { return null; }
+    }));
     body.innerHTML = "";
-    games.forEach((g) => {
+    games.forEach((g, i) => {
       const dt = new Date(g.finishedAt.slice(0, 19));
       const when = dt.toLocaleDateString("fr-FR") + " · " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+      const duration = g.durationSeconds >= 60
+        ? `${Math.floor(g.durationSeconds / 60)}min ${g.durationSeconds % 60}s`
+        : `${g.durationSeconds}s`;
+      const word = (words[i] || "?????").toUpperCase();
       const item = document.createElement("div");
       item.className = "hist-item " + (g.won ? "win" : "loss");
+      const badge = g.won
+        ? `<span class="hist-badge win" title="Gagné"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l3 12h10l3-12-5 4-3-6-3 6z"/></svg></span>`
+        : `<span class="hist-badge loss" title="Perdu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12L4 12"/></svg></span>`;
       item.innerHTML =
-        `<span class="hist-res">${g.won ? "✅" : "❌"}</span>` +
-        `<span class="hist-main"><b>${g.wordLength} lettres</b> · ${g.attempts} essai${g.attempts > 1 ? "s" : ""}<br>` +
-        `<span class="muted small">${when}</span></span>` +
-        `<span class="hist-score">${g.score} pts</span>`;
+        `${badge}` +
+        `<div class="hist-main">` +
+          `<div class="hist-word">${word}</div>` +
+          `<div class="hist-meta">${when} · ⏱ ${duration} · ${g.attempts}/${g.maxAttempts} essais</div>` +
+          `<a class="hist-def" href="https://www.larousse.fr/dictionnaires/francais/${encodeURIComponent(word.toLowerCase())}" target="_blank" rel="noopener">Définition</a>` +
+        `</div>` +
+        `<span class="hist-score ${g.won ? "" : "loss"}">${g.score} pts</span>`;
       body.appendChild(item);
     });
   } catch (e) { /* silencieux */ }

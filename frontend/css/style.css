@@ -117,6 +117,7 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 }
 .tile.filled { border-color: var(--blue); animation: pop .15s ease; }
 .tile.given { color: var(--green); border-color: var(--green); }
+.tile.hint { color: var(--green); opacity: .35; font-style: italic; border-style: dashed; }
 .tile.reveal { animation: flip .5s ease forwards; }
 .tile.correct { background: var(--green); border-color: var(--green-d); color: #fff; }
 .tile.present { background: var(--yellow); border-color: var(--yellow-d); color: #7a5b00; }
@@ -175,13 +176,20 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 .modal-close:hover { background: var(--border); color: var(--text); }
 
 /* ---------- Historique ---------- */
-.history-list { display: flex; flex-direction: column; gap: 8px; }
-.hist-item { display: flex; align-items: center; gap: 12px; background: var(--bg2); border: 2px solid var(--border); border-radius: 14px; padding: 10px 12px; }
-.hist-item.win { border-color: #bde9a0; }
-.hist-item.loss { border-color: #f3c0c0; }
-.hist-res { font-size: 20px; }
-.hist-main { flex: 1; font-size: 14px; font-weight: 700; line-height: 1.35; }
-.hist-score { font-weight: 900; color: var(--green); }
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.hist-item { display: flex; align-items: center; gap: 12px; background: #fff; border: 2px solid var(--border); border-left-width: 6px; border-radius: 14px; padding: 12px 14px; }
+.hist-item.win  { border-left-color: var(--green); }
+.hist-item.loss { border-left-color: var(--red); }
+.hist-badge { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; }
+.hist-badge.win  { background: var(--green-l); color: var(--green-d); }
+.hist-badge.loss { background: #ffe1e1;         color: var(--red); }
+.hist-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.hist-word { font-size: 17px; font-weight: 900; letter-spacing: 2px; color: var(--text); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; }
+.hist-meta { font-size: 12px; color: var(--muted); font-weight: 700; }
+.hist-def  { font-size: 12px; font-weight: 800; color: var(--blue); text-decoration: none; align-self: flex-start; margin-top: 2px; }
+.hist-def:hover { text-decoration: underline; }
+.hist-score { font-weight: 900; color: var(--green); font-size: 16px; white-space: nowrap; }
+.hist-score.loss { color: var(--muted); }
 
 /* ---------- Résumé de rang + connexion/déconnexion ---------- */
 .rank-summary { background: var(--green-l); border: 2px solid var(--green); border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; font-weight: 700; color: var(--text); }
