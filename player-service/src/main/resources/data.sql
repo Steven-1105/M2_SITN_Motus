@@ -4,7 +4,7 @@
 
 INSERT IGNORE INTO players (id, username, email, password, role) VALUES
   (1,  'Liya',    'liya@motus.local',    '$2a$10$demoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDeS', 'PLAYER'),
-  (2,  'Steven',  'steven@motus.local',  '$2a$10$demoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDeS', 'PLAYER'),
+  (2,  'Hongxiang',  'hongxiang@motus.local',  '$2a$10$demoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDeS', 'PLAYER'),
   (3,  'Amelie',  'amelie@motus.local',  '$2a$10$demoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDeS', 'PLAYER'),
   (4,  'Nathan',  'nathan@motus.local',  '$2a$10$demoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDeS', 'PLAYER'),
   (5,  'Chloe',   'chloe@motus.local',   '$2a$10$demoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDeS', 'PLAYER'),

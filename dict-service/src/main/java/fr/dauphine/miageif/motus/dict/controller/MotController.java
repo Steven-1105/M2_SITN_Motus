@@ -40,7 +40,7 @@ public class MotController {
     }
 
     // POST /words/validate  body { "word": "MOUTON" }  ->  { "valid": true }
-    // Contrat impose par game-service (Steven).
+    // Contrat impose par game-service (Hongxiang).
     @PostMapping("/validate")
     public ValidResponse validerMot(@RequestBody WordRequest requete) {
         boolean valid = requete.getWord() != null
