@@ -7,7 +7,7 @@
 
 Projet **Applications Web orientées Services** — M2 MIAGE SITN, Université Paris-Dauphine (2025-2026).
 
-Une réimplémentation du jeu **Motus** (le mot mystère de 5 à 9 lettres, façon Wordle/Pendu) sous forme de **quatre microservices Spring Boot** indépendants, orchestrés par Docker Compose et déployables sur Kubernetes (Minikube), avec un frontend web statique.
+Une réimplémentation du jeu **Motus** (le mot mystère de 5 à 9 lettres) sous forme de **quatre microservices Spring Boot** indépendants, orchestrés par Docker Compose et déployables sur Kubernetes (Minikube), avec un frontend web statique.
 
 ![Écran d'accueil Motus](docs/screenshots/01-login.png)
 
@@ -175,7 +175,7 @@ Voir [`k8s/README.md`](k8s/README.md) pour le détail de chaque manifest et des 
 | `POST` | `/scores/results` | Enregistre le résultat d'une partie (appelé par game-service) |
 | `GET` | `/scores/ranking` | Classement global des joueurs |
 | `GET` | `/scores/players/{id}` | Statistiques d'un joueur (victoires, moyenne, etc.) |
-| `GET` | `/scores/games` | Liste/recherche des parties — filtres `playerId`, `from`, `to` (utilisé par l'administration) |
+| `GET` | `/scores/games` | Liste/recherche des parties — filtres `playerId`, `from`, `to` |
 
 ## Fonctionnalités
 
@@ -183,7 +183,7 @@ Voir [`k8s/README.md`](k8s/README.md) pour le détail de chaque manifest et des 
 - **Gestion des parties** : choix de la longueur du mot (5 à 9 lettres, difficulté croissante), 6 essais, retour visuel lettre par lettre, minuteur.
 - **Suivi des scores** : score par partie, statistiques individuelles, historique des parties jouées.
 - **Classement** : classement global de tous les joueurs par points cumulés.
-- **Administration** : un compte de rôle `ADMIN` peut lister et filtrer l'ensemble des parties jouées par joueur et par période, sans changement d'API — le panneau réutilise l'endpoint `/scores/games` déjà exposé par score-service.
+- **Administration** : un compte de rôle `ADMIN` peut lister et filtrer l'ensemble des parties jouées par joueur et par période
 
 ## Structure du dépôt
 
