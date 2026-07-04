@@ -25,3 +25,9 @@ target/
 # Scripts de demo locaux (perso)
 lancer-demo.command
 arreter-demo.command
+
+# Supports locaux de revision / contexte
+Carte-Architecture-Motus.pdf
+Fiche-Revision-Soutenance-Motus.pdf
+Guide-Demarrage-Docker-Minikube.pdf
+Recap-Projet-Motus.pdf

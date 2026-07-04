@@ -13,6 +13,7 @@ class MotTest {
         assertThat(m.getMot()).isEqualTo("MAISON");
         assertThat(m.getLongueur()).isEqualTo(6);
         assertThat(m.getId()).isNull();
+        assertThat(m.isJouable()).isFalse();
     }
 
     @Test
@@ -28,5 +29,12 @@ class MotTest {
         m.setMot(null);
         assertThat(m.getMot()).isNull();
         assertThat(m.getLongueur()).isZero();
+    }
+
+    @Test
+    void setJouableMetAJourLeMarqueurDeTirage() {
+        Mot m = new Mot("MAISON");
+        m.setJouable(true);
+        assertThat(m.isJouable()).isTrue();
     }
 }

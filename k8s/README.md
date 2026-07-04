@@ -5,7 +5,7 @@ C'est la version « cloud-native » de `docker-compose` : en plus, Kubernetes sa
 **scaler automatiquement** et **redémarrer un service qui tombe** (design for failure).
 
 > Le front n'est pas modifié : on rebranche `localhost:8081..8084` sur le cluster
-> avec `kubectl port-forward`, donc `http://localhost:5500` marche comme d'habitude.
+> avec `kubectl port-forward`, donc `http://localhost:8090` marche comme d'habitude.
 
 ---
 
@@ -33,7 +33,7 @@ Dans un **2ᵉ terminal** :
 bash k8s/port-forward.sh
 ```
 
-Puis ouvre **http://localhost:5500** et joue normalement. Ctrl+C pour arrêter les tunnels.
+Puis ouvre **http://localhost:8090** et joue normalement. Ctrl+C pour arrêter les tunnels.
 
 ---
 

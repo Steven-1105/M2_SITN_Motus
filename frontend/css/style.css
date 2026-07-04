@@ -257,7 +257,17 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 .auth-error { background: #fff0f0; color: #d83a3a; border: 2px solid #ffd0d0; padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 700; }
 .auth-sep { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; margin: 14px 0 10px; }
 .auth-sep::before, .auth-sep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-.auth-note { text-align: center; margin-top: 10px; }
+.auth-sep, .auth-note, #guestBtn { text-align: center; }
+.auth-note { margin-top: 10px; }
+#guestBtn { display: block; margin: 0 auto; }
+
+/* ---------- Admin ---------- */
+.admin-filters { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
+.admin-filters .field { flex: 1; min-width: 130px; }
+.admin-filters select { padding: 12px 14px; border: 2px solid var(--border); border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 700; color: var(--text); outline: none; }
+.admin-actions { display: flex; gap: 8px; }
+.hist-item.admin { justify-content: space-between; }
+.hist-player { font-size: 13px; font-weight: 800; color: var(--blue); }
 
 /* ---------- Admin ---------- */
 .admin-filters { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 14px; }

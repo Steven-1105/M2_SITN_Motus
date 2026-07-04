@@ -91,6 +91,17 @@ class MotControllerTest {
     }
 
     @Test
+    void validateRefusePrenomsEtMotsAnglaisNettoyes() {
+        ValidResponse prenom = rest.postForObject(url("/words/validate"), new WordRequest("MARIE"), ValidResponse.class);
+        assertThat(prenom).isNotNull();
+        assertThat(prenom.isValid()).isFalse();
+
+        ValidResponse anglais = rest.postForObject(url("/words/validate"), new WordRequest("TWIST"), ValidResponse.class);
+        assertThat(anglais).isNotNull();
+        assertThat(anglais.isValid()).isFalse();
+    }
+
+    @Test
     void lengthsRetourneLesLongueursDisponiblesAvecComptes() {
         LevelInfo[] niveaux = rest.getForObject(url("/words/lengths"), LevelInfo[].class);
         assertThat(niveaux).extracting(LevelInfo::getLength).contains(5, 6, 7, 8);
@@ -98,7 +109,7 @@ class MotControllerTest {
     }
 
     @Test
-    void randomNePropossJamaisUneFormeConjugueeCommeReponse() {
+    void randomNeProposeJamaisUneFormeConjugueeCommeReponse() {
         // PRIEZ (jeu de test) est une conjugaison : jamais tiree comme mot mystere,
         // meme si elle reste une proposition valide pour le joueur (cf. test suivant).
         for (int i = 0; i < 200; i++) {
@@ -114,5 +125,44 @@ class MotControllerTest {
         ValidResponse body = rest.postForObject(url("/words/validate"), new WordRequest("PRIEZ"), ValidResponse.class);
         assertThat(body).isNotNull();
         assertThat(body.isValid()).isTrue();
+
+        ValidResponse passeSimple = rest.postForObject(url("/words/validate"), new WordRequest("BRAQUA"), ValidResponse.class);
+        assertThat(passeSimple).isNotNull();
+        assertThat(passeSimple.isValid()).isTrue();
+    }
+
+    @Test
+    void randomNeProposePasBraquaCommeMotMystere() {
+        // BRAQUA reste une proposition valide, mais le tirage doit preferer un mot non conjugue.
+        for (int i = 0; i < 200; i++) {
+            WordResponse body = rest.getForObject(url("/words/random?length=6"), WordResponse.class);
+            assertThat(body.getWord()).isNotEqualTo("BRAQUA");
+        }
+    }
+
+    @Test
+    void validateAccepteEncoreLesPlurielsCommeProposition() {
+        // SALLES est un vrai mot : il doit rester jouable par le joueur.
+        ValidResponse body = rest.postForObject(url("/words/validate"), new WordRequest("SALLES"), ValidResponse.class);
+        assertThat(body).isNotNull();
+        assertThat(body.isValid()).isTrue();
+    }
+
+    @Test
+    void randomNeProposePasUnPlurielSimpleCommeMotMystere() {
+        // SALLES reste une proposition valide, mais le tirage doit preferer SALLE.
+        for (int i = 0; i < 200; i++) {
+            WordResponse body = rest.getForObject(url("/words/random?length=6"), WordResponse.class);
+            assertThat(body.getWord()).isNotEqualTo("SALLES");
+        }
+    }
+
+    @Test
+    void randomNeProposeQueDesMotsMarquesJouables() {
+        // CAFARDEUX existe dans le jeu de test, mais n'est pas marque comme mot courant.
+        for (int i = 0; i < 200; i++) {
+            WordResponse body = rest.getForObject(url("/words/random?length=9"), WordResponse.class);
+            assertThat(body.getWord()).isIn("CROCODILE", "MANDARINE");
+        }
     }
 }
