@@ -1,40 +1,30 @@
 -- ================================================================
 --  Nettoyage du dictionnaire au demarrage (execute apres data.sql).
---  Objectif : supprimer UNIQUEMENT les mots qui polluent le TIRAGE
---  (prenoms), sans casser la VALIDATION (le joueur doit pouvoir
---  taper une conjugaison ou une forme derivee comme proposition).
+--  Objectif : supprimer UNIQUEMENT les mots qui ne sont pas souhaites
+--  comme propositions (prenoms), sans casser la VALIDATION des vrais
+--  mots francais (pluriels, conjugaisons, formes derivees).
 --
 --  Les conjugaisons restent en BDD et sont acceptees a /words/validate,
---  mais elles sont exclues du tirage aleatoire par une regex dans
---  findRandomJouableByLongueur (cf. MotRepository).
+--  mais elles sont exclues du tirage aleatoire par findRandomJouableByLongueur
+--  quand elles peuvent etre reliees a un infinitif connu (cf. MotRepository).
+--  Meme principe pour les pluriels simples : SALLES reste une proposition
+--  valide, mais le tirage prefere SALLE.
 -- ================================================================
 
 -- ================================================================
---  1. Mots BIZARRES signales par les joueurs (conjugaisons archaiques,
---     mots litteraires rares, formes qui n'ont pas de definition Larousse).
---     A enrichir au fil des bugs remontes.
+--  1. Mots BIZARRES signales par les joueurs.
+--     On ne les supprime plus ici : certains existent vraiment et doivent
+--     rester acceptes comme propositions. Ils sont seulement exclus du tirage
+--     par MOTS_JAMAIS_JOUABLES dans MotRepository.
 -- ================================================================
-DELETE FROM mot WHERE mot IN (
-  'POINS','POIGNIS','POIGNIT','OIGNIS','OIGNIT',   -- conjugaisons de POINDRE / OINDRE (rares)
-  'ABIMONS','ABIMEZ','ABIMAT',                      -- conjugaisons d'ABIMER (formes rares)
-  'ABATTIS','ABATTIT',                              -- conjugaisons d'ABATTRE (passe simple)
-  'ACHOPPAS','ACHOPPAT',                            -- passe simple d'ACHOPPER
-  'AILEZ','AILAIT',                                 -- verbe AILER (rare)
-  'OYEZ','OYIONS','OYAIT'                           -- OUIR (litteraire)
-);
 
 -- ================================================================
---  2. PLURIELS : on supprime les mots en -S dont le SINGULIER existe
---     deja dans le dictionnaire. Ex : MAISONS supprime (MAISON existe),
---     CHIENS supprime (CHIEN existe). Les mots singuliers en -S
---     (MAIS, PAYS, TEMPS, CORPS, POIDS...) sont preserves car leur
---     "singulier" (MAI, PAY, TEMP, CORP, POID) n'existe pas en base.
---     Cette regle intelligente evite d'ecrire une whitelist manuelle.
+--  2. PLURIELS.
+--     On ne les supprime plus ici : SALLES, ROUTES, MAISONS... sont de
+--     vrais mots et doivent rester acceptes quand le joueur les propose.
+--     Ils sont seulement exclus du tirage aleatoire par MotRepository si
+--     leur singulier existe dans le dictionnaire.
 -- ================================================================
-DELETE m1 FROM mot m1
-JOIN mot m2 ON m2.mot = SUBSTRING(m1.mot, 1, LENGTH(m1.mot) - 1)
-WHERE m1.mot LIKE '%S'
-  AND m1.longueur >= 5;
 
 -- ================================================================
 --  3. PRENOMS courants (garcons + filles + prenoms internationaux)
@@ -53,3 +43,15 @@ DELETE FROM mot WHERE mot IN (
   'SARAH','MANON','AMELIE','MARINE','MARGAUX','SOPHIE','ELISE','CELINE','NATHALIE','CHRISTINE',
   'STEVEN','LIYA','KEVIN','BRIAN','ALEX','ERIC','FRANK','GARY','HARRY','MARIA'
 );
+
+-- ================================================================
+--  4. Mots anglais / anglicismes que l'on refuse meme en validation.
+--     Le sous-dictionnaire jouable evite deja qu'ils sortent comme reponses ;
+--     cette liste garde aussi /words/validate coherent avec le choix du projet.
+-- ================================================================
+DELETE FROM mot
+WHERE mot LIKE 'TWIST%'
+   OR mot IN (
+     'BABY','BABYS','BOSS','CASH','COOL','GIRL','JOBS','LOOK','LIVE','LOVE',
+     'WEEK','WEEKS','WEEKEND','WEEKENDS'
+   );

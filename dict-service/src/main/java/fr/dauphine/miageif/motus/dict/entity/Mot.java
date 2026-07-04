@@ -24,6 +24,9 @@ public class Mot {
     @Column(name = "longueur", nullable = false)
     private int longueur;
 
+    @Column(name = "jouable", nullable = false, columnDefinition = "boolean default false")
+    private boolean jouable = false;
+
     public Mot() {
     }
 
@@ -46,5 +49,13 @@ public class Mot {
 
     public int getLongueur() {
         return longueur;
+    }
+
+    public boolean isJouable() {
+        return jouable;
+    }
+
+    public void setJouable(boolean jouable) {
+        this.jouable = jouable;
     }
 }
