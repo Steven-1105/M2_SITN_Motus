@@ -1,7 +1,7 @@
 # Motus — Jeu de mots en microservices
 
 Projet **Applications Web orientées Services** · M2 MIAGE SITN · Université Paris-Dauphine · 2025-2026
-Binôme : **Liya** & **Steven**
+Binôme : **Liya** & **Hongxiang**
 
 ---
 
@@ -30,7 +30,7 @@ Le dictionnaire (~132 000 mots) charge en environ 30 secondes au premier démarr
 | `admin`     | `admin123`   | ADMIN — accès au panneau d'administration |
 | _(inscription libre)_ | _(6 caractères min.)_ | PLAYER |
 
-Douze comptes joueurs (Liya, Steven, Amelie, Nathan…) peuplent aussi le classement de démo.
+Douze comptes joueurs (Liya, Hongxiang, Amelie, Nathan…) peuplent aussi le classement de démo.
 
 Le mode **invité** est disponible depuis l'écran de connexion : les scores ne sont pas enregistrés.
 
