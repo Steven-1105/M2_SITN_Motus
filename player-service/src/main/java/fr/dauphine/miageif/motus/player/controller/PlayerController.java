@@ -1,5 +1,6 @@
 package fr.dauphine.miageif.motus.player.controller;
 
+import fr.dauphine.miageif.motus.player.dto.LoginRequest;
 import fr.dauphine.miageif.motus.player.dto.PlayerCreateRequest;
 import fr.dauphine.miageif.motus.player.dto.PlayerResponse;
 import fr.dauphine.miageif.motus.player.service.PlayerService;
@@ -24,6 +25,12 @@ public class PlayerController {
     public ResponseEntity<PlayerResponse> register(@Valid @RequestBody PlayerCreateRequest request) {
         PlayerResponse response = playerService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // POST /players/login {identifiant, password} -> 200 + PlayerResponse ou 401
+    @PostMapping("/login")
+    public ResponseEntity<PlayerResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(playerService.login(request));
     }
 
     @GetMapping("/{id}")

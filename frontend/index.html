@@ -7,24 +7,31 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=6" />
+  <link rel="stylesheet" href="css/style.css?v=8" />
 </head>
 <body>
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <svg class="logo-mascot" viewBox="0 0 120 116" aria-hidden="true">
-          <rect x="14" y="26" width="92" height="84" rx="26" fill="#46A302" />
-          <rect x="14" y="16" width="92" height="84" rx="26" fill="#58CC02" />
-          <circle cx="46" cy="54" r="13" fill="#fff" />
-          <circle cx="78" cy="54" r="13" fill="#fff" />
-          <circle cx="49" cy="56" r="5.5" fill="#3c3c3c" />
-          <circle cx="81" cy="56" r="5.5" fill="#3c3c3c" />
-          <circle cx="47" cy="53" r="1.8" fill="#fff" />
-          <circle cx="79" cy="53" r="1.8" fill="#fff" />
-          <path d="M48 78 Q60 90 72 78" stroke="#2b6b00" stroke-width="4" fill="none" stroke-linecap="round" />
-          <circle cx="34" cy="72" r="6" fill="#ff9bb3" opacity=".7" />
-          <circle cx="90" cy="72" r="6" fill="#ff9bb3" opacity=".7" />
+        <svg class="logo-mascot" viewBox="0 0 120 120" aria-hidden="true">
+          <ellipse cx="60" cy="110" rx="28" ry="6" fill="#000" opacity=".08"/>
+          <path d="M28 32 Q22 14 36 14 Q44 18 42 34 Z" fill="#46A302"/>
+          <path d="M92 32 Q98 14 84 14 Q76 18 78 34 Z" fill="#46A302"/>
+          <ellipse cx="60" cy="66" rx="42" ry="44" fill="#46A302"/>
+          <ellipse cx="60" cy="62" rx="42" ry="44" fill="#58CC02"/>
+          <path d="M22 66 Q60 96 98 66 Q98 100 60 108 Q22 100 22 66Z" fill="#c0e796"/>
+          <circle cx="42" cy="56" r="16" fill="#fff"/>
+          <circle cx="78" cy="56" r="16" fill="#fff"/>
+          <circle cx="44" cy="58" r="8" fill="#3c3c3c"/>
+          <circle cx="80" cy="58" r="8" fill="#3c3c3c"/>
+          <circle cx="46" cy="54" r="3" fill="#fff"/>
+          <circle cx="82" cy="54" r="3" fill="#fff"/>
+          <circle cx="41" cy="60" r="1.4" fill="#fff"/>
+          <circle cx="77" cy="60" r="1.4" fill="#fff"/>
+          <path d="M54 74 L60 82 L66 74 Z" fill="#ffb020" stroke="#e07a00" stroke-width="0.6"/>
+          <path d="M52 88 Q60 96 68 88" stroke="#2b6b00" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+          <circle cx="24" cy="80" r="7" fill="#ffb3c9" opacity=".85"/>
+          <circle cx="96" cy="80" r="7" fill="#ffb3c9" opacity=".85"/>
         </svg>
         <div class="brand-text">
           <span class="logo">Motus</span>
@@ -32,15 +39,22 @@
         </div>
       </div>
       <div class="header-right">
-        <input id="pseudo" type="text" placeholder="ton pseudo" maxlength="16" autocomplete="off" />
+        <div id="userChip" class="user-chip" hidden title="">
+          <span id="userName">—</span>
+          <span id="userChevron" class="chevron">▾</span>
+        </div>
+        <button id="authOpenBtn" class="btn primary small">Se connecter</button>
         <div class="tools">
-          <button class="tool-btn" data-modal="stats" title="Mes statistiques" aria-label="Statistiques">
+          <button class="tool-btn" data-modal="share" title="Partager le jeu" aria-label="Partager">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+          </button>
+          <button class="tool-btn need-account" data-modal="stats" title="Mes statistiques" aria-label="Statistiques">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><line x1="7" y1="20" x2="7" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="17" y1="20" x2="17" y2="15"/></svg>
           </button>
           <button class="tool-btn" data-modal="ranking" title="Classement" aria-label="Classement">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M9 13.5 7.5 21 12 18.2 16.5 21 15 13.5"/></svg>
           </button>
-          <button class="tool-btn" data-modal="history" title="Historique de mes parties" aria-label="Historique">
+          <button class="tool-btn need-account" data-modal="history" title="Historique de mes parties" aria-label="Historique">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
           </button>
         </div>
@@ -54,22 +68,30 @@
         <!-- Écran de sélection -->
         <div id="setup" class="setup">
           <div class="hero">
-            <svg class="hero-mascot" viewBox="0 0 120 120" aria-hidden="true">
-              <circle cx="60" cy="62" r="52" fill="#eaf3de"/>
-              <path d="M22 40 L34 22 L46 42 Z" fill="#46a302"/>
-              <path d="M98 40 L86 22 L74 42 Z" fill="#46a302"/>
-              <rect x="18" y="38" width="84" height="72" rx="34" fill="#46a302"/>
-              <rect x="14" y="34" width="84" height="72" rx="34" fill="#58cc02"/>
-              <circle cx="34" cy="98" r="6" fill="#ff9bb3" opacity=".7"/>
-              <circle cx="78" cy="98" r="6" fill="#ff9bb3" opacity=".7"/>
-              <circle cx="34" cy="66" r="13" fill="#fff"/>
-              <circle cx="78" cy="66" r="13" fill="#fff"/>
-              <circle cx="36" cy="68" r="6" fill="#3c3c3c"/>
-              <circle cx="80" cy="68" r="6" fill="#3c3c3c"/>
-              <circle cx="38" cy="65" r="2" fill="#fff"/>
-              <circle cx="82" cy="65" r="2" fill="#fff"/>
-              <path d="M50 82 l6 8 l10 0 z" fill="#ffb020"/>
-              <path d="M42 92 q14 12 28 0" stroke="#2b6b00" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+            <svg class="hero-mascot" viewBox="0 0 140 140" aria-hidden="true">
+              <ellipse cx="70" cy="128" rx="34" ry="6" fill="#000" opacity=".08"/>
+              <ellipse cx="70" cy="70" rx="60" ry="16" fill="#c0e796" opacity=".6"/>
+              <path d="M28 34 Q22 12 40 12 Q50 18 46 38 Z" fill="#46a302"/>
+              <path d="M112 34 Q118 12 100 12 Q90 18 94 38 Z" fill="#46a302"/>
+              <ellipse cx="70" cy="76" rx="50" ry="52" fill="#46a302"/>
+              <ellipse cx="70" cy="72" rx="50" ry="52" fill="#58cc02"/>
+              <path d="M22 76 Q70 110 118 76 Q118 120 70 128 Q22 120 22 76Z" fill="#c0e796"/>
+              <path d="M48 76 Q56 92 66 76" stroke="#a3d16a" stroke-width="1.5" fill="none"/>
+              <path d="M74 76 Q84 92 92 76" stroke="#a3d16a" stroke-width="1.5" fill="none"/>
+              <circle cx="48" cy="62" r="20" fill="#fff"/>
+              <circle cx="92" cy="62" r="20" fill="#fff"/>
+              <circle cx="50" cy="64" r="10" fill="#3c3c3c"/>
+              <circle cx="94" cy="64" r="10" fill="#3c3c3c"/>
+              <circle cx="53" cy="60" r="4" fill="#fff"/>
+              <circle cx="97" cy="60" r="4" fill="#fff"/>
+              <circle cx="47" cy="66" r="1.6" fill="#fff"/>
+              <circle cx="91" cy="66" r="1.6" fill="#fff"/>
+              <path d="M62 84 L70 94 L78 84 Z" fill="#ffb020" stroke="#e07a00" stroke-width="0.8"/>
+              <path d="M60 100 Q70 108 80 100" stroke="#2b6b00" stroke-width="3.8" fill="none" stroke-linecap="round"/>
+              <ellipse cx="30" cy="94" rx="10" ry="6" fill="#ffb3c9" opacity=".85"/>
+              <ellipse cx="110" cy="94" rx="10" ry="6" fill="#ffb3c9" opacity=".85"/>
+              <path d="M46 46 Q50 40 56 42" stroke="#2b6b00" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+              <path d="M94 46 Q90 40 84 42" stroke="#2b6b00" stroke-width="2.4" fill="none" stroke-linecap="round"/>
             </svg>
             <div class="hero-text">
               <h2>Prêt à trouver le mot mystère&nbsp;?</h2>
@@ -100,12 +122,13 @@
               <rect id="p-rope" class="pt rope" data-stage="4" x="127" y="24" width="4" height="27" rx="2"/>
               <!-- Mascotte accrochee (apparait a l'avant-derniere erreur) -->
               <g id="p-mascot" class="pt mascot" data-stage="5">
-                <path d="M114 52 L120 40 L127 52 Z" fill="#46a302"/>
-                <path d="M142 52 L136 40 L129 52 Z" fill="#46a302"/>
-                <rect x="112" y="54" width="34" height="40" rx="15" fill="#46a302"/>
-                <rect x="110" y="50" width="36" height="40" rx="16" fill="#58cc02"/>
-                <circle cx="122" cy="70" r="4" fill="#ff9bb3" opacity=".6"/>
-                <circle cx="134" cy="70" r="4" fill="#ff9bb3" opacity=".6"/>
+                <path d="M113 54 Q109 42 121 42 Q126 46 124 56 Z" fill="#46a302"/>
+                <path d="M143 54 Q147 42 135 42 Q130 46 132 56 Z" fill="#46a302"/>
+                <ellipse cx="128" cy="72" rx="21" ry="22" fill="#46a302"/>
+                <ellipse cx="128" cy="68" rx="21" ry="22" fill="#58cc02"/>
+                <path d="M108 68 Q128 84 148 68 Q148 88 128 90 Q108 88 108 68Z" fill="#c0e796"/>
+                <ellipse cx="112" cy="82" rx="5" ry="3" fill="#ffb3c9" opacity=".8"/>
+                <ellipse cx="144" cy="82" rx="5" ry="3" fill="#ffb3c9" opacity=".8"/>
                 <!-- Visage normal (inquiet) -->
                 <g id="face-normal">
                   <circle cx="121" cy="66" r="7.5" fill="#fff"/>
@@ -181,6 +204,59 @@
     </div>
   </div>
 
+  <!-- AUTH : inscription / connexion / invite -->
+  <div class="modal" id="modal-auth" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><h3 id="authTitle">Bienvenue sur Motus</h3><button class="modal-close" data-close>✕</button></div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Se connecter</button>
+        <button class="auth-tab" data-tab="register">Créer un compte</button>
+      </div>
+      <form id="authForm" class="auth-form" autocomplete="off">
+        <label class="field" data-only="register">
+          <span>Adresse e-mail</span>
+          <input id="authEmail" type="email" placeholder="ex. amelie@dauphine.fr" autocomplete="email"/>
+        </label>
+        <label class="field">
+          <span id="authIdentLabel">Pseudo ou e-mail</span>
+          <input id="authIdent" type="text" placeholder="ton pseudo" autocomplete="username" maxlength="30"/>
+        </label>
+        <label class="field">
+          <span>Mot de passe</span>
+          <input id="authPassword" type="password" placeholder="au moins 6 caractères" autocomplete="current-password" minlength="6"/>
+        </label>
+        <div id="authError" class="auth-error" hidden></div>
+        <button id="authSubmit" type="submit" class="btn primary big">Se connecter</button>
+      </form>
+      <div class="auth-sep"><span>ou</span></div>
+      <button id="guestBtn" class="btn ghost big">🎮  Jouer en invité</button>
+      <p class="muted small auth-note">En mode invité tu peux jouer, mais tes scores ne sont pas enregistrés.</p>
+    </div>
+  </div>
+
+  <!-- PARTAGER : lien / WhatsApp / QR code -->
+  <div class="modal" id="modal-share" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><h3>Partager Motus</h3><button class="modal-close" data-close>✕</button></div>
+      <p class="muted small">Invite tes amis à jouer avec toi !</p>
+      <div class="share-link">
+        <input id="shareUrl" type="text" readonly/>
+        <button id="copyBtn" class="btn ghost small">Copier</button>
+      </div>
+      <div class="share-actions">
+        <a id="waBtn" class="share-btn wa" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.3c1.5.8 3.1 1.3 4.8 1.3 5.5 0 10-4.5 10-10S17.5 2 12 2zm5.4 14.2c-.2.6-1.3 1.2-1.8 1.3-.5.1-1.1.1-1.7-.1-.4-.1-1-.3-1.7-.6-3-1.3-5-4.4-5.1-4.6-.1-.2-1.2-1.7-1.2-3.2 0-1.5.8-2.3 1.1-2.6.3-.3.6-.4.8-.4h.6c.2 0 .5-.1.7.5.3.7.9 2.3.9 2.4.1.2.1.3 0 .5-.1.2-.1.3-.3.5-.1.2-.3.4-.4.5-.1.1-.3.3-.1.5.2.3.9 1.4 1.9 2.3 1.3 1.2 2.4 1.5 2.7 1.7.3.1.5.1.7-.1s.8-.9 1-1.3c.2-.3.4-.3.7-.2.3.1 1.9.9 2.2 1.1.3.2.5.2.6.3.1.3.1.9-.1 1.5z"/></svg>
+          WhatsApp
+        </a>
+        <button id="qrBtn" class="share-btn qr">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M17 20h4M20 14v3M14 20h1"/></svg>
+          QR code
+        </button>
+      </div>
+      <div id="qrBox" class="qr-box" hidden><canvas id="qrCanvas"></canvas></div>
+    </div>
+  </div>
+
   <!-- Confirmation de deconnexion -->
   <div class="modal" id="modal-logout" hidden>
     <div class="modal-card modal-confirm">
@@ -194,6 +270,7 @@
   </div>
 
   <canvas id="confetti" class="confetti-canvas"></canvas>
-  <script src="js/app.js?v=6"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

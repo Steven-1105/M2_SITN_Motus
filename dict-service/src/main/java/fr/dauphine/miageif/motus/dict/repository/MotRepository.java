@@ -17,13 +17,23 @@ public interface MotRepository extends JpaRepository<Mot, Long> {
     boolean existsByMotIgnoreCase(String mot);
 
     // Tirage aleatoire EFFICACE : ne charge qu'UNE ligne (indispensable avec 130k+ mots).
-    // Exclut les formes conjuguees en -EZ/-IEZ (vous ...ez), trop dures a deviner comme
-    // reponse (ex: PRIEZ, PLIEZ). Ces mots restent valides en tant que PROPOSITION du joueur
-    // (cf. existsByMotIgnoreCase, utilise par /words/validate, non filtre).
-    // Exceptions connues qui ne sont pas des verbes : ASSEZ, CHEZ.
-    @Query(value = "SELECT * FROM mot WHERE longueur = :longueur "
-            + "AND (mot NOT REGEXP 'EZ$' OR mot IN ('ASSEZ', 'CHEZ')) "
-            + "ORDER BY RAND() LIMIT 1", nativeQuery = true)
+    // Exclut les formes CONJUGUEES (trop dures a deviner comme reponse), mais elles restent
+    // valides comme PROPOSITION du joueur (cf. existsByMotIgnoreCase, utilise par /words/validate).
+    // Suffixes exclus :
+    //   - EZ/IEZ  (vous ...ez)             : ex. PRIEZ, PLIEZ
+    //   - ERAI, ERAS, ERONS, ERONT         : futur simple
+    //   - ERAIS, ERAIT, ERIONS, ERAIENT    : conditionnel present
+    //   - AIS, AIT, AIENT, IONS            : imparfait (attention : IONS peut etre un nom)
+    //   - ASSE, ASSES, ASSENT, ASSIONS     : subjonctif imparfait
+    //   - ISSE, ISSES, ISSENT, ISSIONS     : subjonctif imparfait -IR
+    //   - USSE, USSES, USSENT, USSIONS     : subjonctif imparfait -OIR
+    // Exceptions (noms/adjectifs frequents mal captures par la regex) : ASSEZ, CHEZ, MAIS,
+    //   FRAIS, VRAIS, LAIT, FAIT, TRAIT, LIONS, PAONS, PIONS, CANONS...
+    @Query(value =
+        "SELECT * FROM mot WHERE longueur = :longueur "
+      + "AND (mot NOT REGEXP '(EZ|ERAI|ERAS|ERONS|ERONT|ERAIS|ERAIT|ERIONS|ERAIENT|AIENT|ASSE|ASSES|ASSENT|ASSIONS|ISSE|ISSES|ISSENT|ISSIONS|USSE|USSES|USSENT|USSIONS)$' "
+      + "     OR mot IN ('ASSEZ','CHEZ','SUISSE','CAISSE','LAISSE','BAISSE','BROSSE','POISSE','MOUSSE','CROSSE','FESSE','MASSE','CASSE','TASSE','PASSE','LASSE','RUSSE','BOSSE')) "
+      + "ORDER BY RAND() LIMIT 1", nativeQuery = true)
     Mot findRandomJouableByLongueur(@Param("longueur") int longueur);
 
     // Nombre de mots par longueur, sans charger les mots.

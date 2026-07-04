@@ -1,10 +1,12 @@
 package fr.dauphine.miageif.motus.player.service;
 
+import fr.dauphine.miageif.motus.player.dto.LoginRequest;
 import fr.dauphine.miageif.motus.player.dto.PlayerCreateRequest;
 import fr.dauphine.miageif.motus.player.dto.PlayerResponse;
 import fr.dauphine.miageif.motus.player.entity.Player;
 import fr.dauphine.miageif.motus.player.entity.Role;
 import fr.dauphine.miageif.motus.player.exception.DuplicateResourceException;
+import fr.dauphine.miageif.motus.player.exception.InvalidCredentialsException;
 import fr.dauphine.miageif.motus.player.exception.ResourceNotFoundException;
 import fr.dauphine.miageif.motus.player.repository.PlayerRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +42,18 @@ public class PlayerService {
 
         Player saved = playerRepository.save(player);
         return PlayerResponse.fromEntity(saved);
+    }
+
+    // Connexion : accepte pseudo OU email dans 'identifiant', verifie le mot de passe
+    // via BCrypt (le meme encoder utilise a l'inscription).
+    public PlayerResponse login(LoginRequest request) {
+        Player player = playerRepository.findByUsername(request.getIdentifiant())
+                .or(() -> playerRepository.findByEmail(request.getIdentifiant()))
+                .orElseThrow(() -> new InvalidCredentialsException("Identifiant ou mot de passe incorrect"));
+        if (!passwordEncoder.matches(request.getPassword(), player.getPassword())) {
+            throw new InvalidCredentialsException("Identifiant ou mot de passe incorrect");
+        }
+        return PlayerResponse.fromEntity(player);
     }
 
     public PlayerResponse getById(Long id) {

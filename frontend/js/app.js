@@ -9,15 +9,34 @@ const MAX_ATTEMPTS = 6;
 const state = {
   gameId: null, length: 6, maxAttempts: MAX_ATTEMPTS, firstLetter: "",
   row: 0, col: 1, board: [], finished: false,
-  startTime: 0, timer: null, selectedLength: null, playerId: null,
+  startTime: 0, timer: null, selectedLength: null,
+  playerId: null, playerName: null, isGuest: false,
 };
 
 const $ = (id) => document.getElementById(id);
-const pseudoInput = $("pseudo");
 const elLevels = $("levels"), elStart = $("startBtn");
 const elSetup = $("setup"), elPlay = $("play"), elResult = $("result");
 const elBoard = $("board"), elKeyboard = $("keyboard"), elMessage = $("message");
 const elBanner = $("banner");
+
+// Cache global des pseudos (id -> username) pour eviter des appels repetes
+const nameCache = JSON.parse(localStorage.getItem("motus_names") || "{}");
+function saveNameCache() { localStorage.setItem("motus_names", JSON.stringify(nameCache)); }
+async function resolveName(id) {
+  if (nameCache[id]) return nameCache[id];
+  try {
+    const r = await fetch(`${PLAYER}/players/${id}`);
+    if (!r.ok) return "Joueur " + id;
+    const p = await r.json();
+    nameCache[id] = p.username; saveNameCache();
+    return p.username;
+  } catch (e) { return "Joueur " + id; }
+}
+async function resolveNames(ids) {
+  const unique = [...new Set(ids)].filter((id) => !nameCache[id]);
+  await Promise.all(unique.map((id) => resolveName(id)));
+}
+function pseudoForId(id) { return nameCache[id] || ("Joueur " + id); }
 
 function showBanner(m) { elBanner.textContent = m; elBanner.hidden = false; }
 function hideBanner() { elBanner.hidden = true; }
@@ -39,59 +58,95 @@ function updatePendu(wrong, ko = false) {
     p.classList.add("ko");
   }
 }
-const KO_OWL_SVG = `<svg viewBox="0 0 80 82" aria-hidden="true">
-  <path d="M22 26 L30 14 L38 26 Z" fill="#46a302"/><path d="M58 26 L50 14 L42 26 Z" fill="#46a302"/>
-  <rect x="18" y="24" width="44" height="46" rx="20" fill="#46a302"/>
-  <rect x="16" y="20" width="44" height="46" rx="20" fill="#58cc02"/>
-  <path d="M24 42 l11 9 M35 42 l-11 9" stroke="#3c3c3c" stroke-width="3" stroke-linecap="round"/>
-  <path d="M45 42 l11 9 M56 42 l-11 9" stroke="#3c3c3c" stroke-width="3" stroke-linecap="round"/>
-  <path d="M30 56 q8 6 16 0" stroke="#2b6b00" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-  <path d="M34 48 l4 6 l4 -6 z" fill="#ffb020"/>
-  <ellipse cx="38" cy="62" rx="5" ry="6" fill="#ff6b9d"/>
-  <text x="6" y="26" fill="#ffc800" font-size="15">✦</text><text x="64" y="22" fill="#ffc800" font-size="15">✦</text>
+// Mascotte KO (yeux X, langue, etoiles) - style rond et mignon
+const KO_OWL_SVG = `<svg viewBox="0 0 90 92" aria-hidden="true">
+  <path d="M20 30 Q16 12 30 12 Q38 16 36 32 Z" fill="#46a302"/>
+  <path d="M70 30 Q74 12 60 12 Q52 16 54 32 Z" fill="#46a302"/>
+  <ellipse cx="45" cy="52" rx="34" ry="36" fill="#46a302"/>
+  <ellipse cx="45" cy="48" rx="34" ry="36" fill="#58cc02"/>
+  <path d="M14 52 Q45 76 76 52 Q76 82 45 84 Q14 82 14 52Z" fill="#c0e796"/>
+  <ellipse cx="18" cy="66" rx="7" ry="5" fill="#ffb3c9" opacity=".85"/>
+  <ellipse cx="72" cy="66" rx="7" ry="5" fill="#ffb3c9" opacity=".85"/>
+  <circle cx="30" cy="44" r="10" fill="#fff"/><circle cx="60" cy="44" r="10" fill="#fff"/>
+  <path d="M25 40 l10 8 M35 40 l-10 8" stroke="#3c3c3c" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M55 40 l10 8 M65 40 l-10 8" stroke="#3c3c3c" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M41 58 L45 66 L49 58 Z" fill="#ffb020"/>
+  <ellipse cx="45" cy="72" rx="7" ry="6" fill="#ff6b9d"/>
+  <path d="M38 78 Q42 82 45 78" stroke="#c33665" stroke-width="1.4" fill="none"/>
+  <text x="8" y="28" fill="#ffc800" font-size="18">✦</text>
+  <text x="72" y="24" fill="#ffc800" font-size="18">✦</text>
+  <text x="80" y="52" fill="#ffc800" font-size="14">✦</text>
 </svg>`;
 
 // Mascotte qui sourit (couronne + grands yeux + sourire) pour la victoire.
-const HAPPY_OWL_SVG = `<svg viewBox="0 0 80 82" aria-hidden="true">
-  <path d="M22 26 L30 14 L38 26 Z" fill="#46a302"/><path d="M58 26 L50 14 L42 26 Z" fill="#46a302"/>
-  <rect x="18" y="24" width="44" height="46" rx="20" fill="#46a302"/>
-  <rect x="16" y="20" width="44" height="46" rx="20" fill="#58cc02"/>
-  <circle cx="26" cy="66" r="4.5" fill="#ff9bb3" opacity=".6"/>
-  <circle cx="54" cy="66" r="4.5" fill="#ff9bb3" opacity=".6"/>
-  <circle cx="27" cy="42" r="9" fill="#fff"/><circle cx="53" cy="42" r="9" fill="#fff"/>
-  <circle cx="28" cy="43" r="4.5" fill="#3c3c3c"/><circle cx="54" cy="43" r="4.5" fill="#3c3c3c"/>
-  <circle cx="29" cy="41" r="1.6" fill="#fff"/><circle cx="55" cy="41" r="1.6" fill="#fff"/>
-  <path d="M40 50 l-5 6 l10 0 z" fill="#ffb020"/>
-  <path d="M28 60 q12 10 24 0" stroke="#2b6b00" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <path d="M22 20 l5 -10 l5 8 l4 -12 l4 12 l5 -8 l5 10 z" fill="#ffc800" stroke="#e0ae00" stroke-width="1.2" stroke-linejoin="round"/>
-  <circle cx="27" cy="10" r="1.6" fill="#ff4b4b"/><circle cx="40" cy="7" r="1.6" fill="#1cb0f6"/><circle cx="53" cy="10" r="1.6" fill="#a06bff"/>
+const HAPPY_OWL_SVG = `<svg viewBox="0 0 90 100" aria-hidden="true">
+  <path d="M20 40 Q16 22 30 22 Q38 26 36 42 Z" fill="#46a302"/>
+  <path d="M70 40 Q74 22 60 22 Q52 26 54 42 Z" fill="#46a302"/>
+  <ellipse cx="45" cy="62" rx="34" ry="36" fill="#46a302"/>
+  <ellipse cx="45" cy="58" rx="34" ry="36" fill="#58cc02"/>
+  <path d="M14 62 Q45 86 76 62 Q76 92 45 94 Q14 92 14 62Z" fill="#c0e796"/>
+  <path d="M28 62 Q34 74 42 62" stroke="#a3d16a" stroke-width="1.3" fill="none"/>
+  <path d="M48 62 Q56 74 62 62" stroke="#a3d16a" stroke-width="1.3" fill="none"/>
+  <ellipse cx="16" cy="76" rx="8" ry="5" fill="#ffb3c9" opacity=".85"/>
+  <ellipse cx="74" cy="76" rx="8" ry="5" fill="#ffb3c9" opacity=".85"/>
+  <circle cx="30" cy="52" r="13" fill="#fff"/>
+  <circle cx="60" cy="52" r="13" fill="#fff"/>
+  <circle cx="31" cy="54" r="7" fill="#3c3c3c"/>
+  <circle cx="61" cy="54" r="7" fill="#3c3c3c"/>
+  <circle cx="33" cy="50" r="3" fill="#fff"/>
+  <circle cx="63" cy="50" r="3" fill="#fff"/>
+  <circle cx="29" cy="56" r="1.4" fill="#fff"/>
+  <circle cx="59" cy="56" r="1.4" fill="#fff"/>
+  <path d="M40 66 L45 74 L50 66 Z" fill="#ffb020" stroke="#e07a00" stroke-width="0.6"/>
+  <path d="M34 80 Q45 90 56 80" stroke="#2b6b00" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+  <path d="M18 22 l4 -12 l6 10 l4 -14 l5 14 l6 -10 l4 12 l5 -12 l3 12 z" fill="#ffc800" stroke="#e0ae00" stroke-width="1.2" stroke-linejoin="round"/>
+  <circle cx="24" cy="12" r="1.8" fill="#ff4b4b"/>
+  <circle cx="38" cy="8" r="1.8" fill="#1cb0f6"/>
+  <circle cx="52" cy="8" r="1.8" fill="#a06bff"/>
+  <circle cx="66" cy="12" r="1.8" fill="#58cc02"/>
 </svg>`;
 
-// ====== player-service : retrouver (ou creer) le joueur ======
-async function resolvePlayer(pseudo) {
-  pseudo = (pseudo || "").trim() || "Invité";
-  const cache = JSON.parse(localStorage.getItem("motus_playerids") || "{}");
-  if (cache[pseudo]) { state.playerId = cache[pseudo]; return cache[pseudo]; }
-  let id = null;
-  try {
-    const res = await fetch(`${PLAYER}/players`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: pseudo, email: pseudo.toLowerCase() + "@motus.local", password: "motus1234" }),
-    });
-    if (res.ok) id = (await res.json()).id;
-    else {
-      const list = await (await fetch(`${PLAYER}/players`)).json();
-      const found = list.find((p) => p.username === pseudo);
-      id = found ? found.id : null;
-    }
-  } catch (e) { return null; }
-  if (id != null) { cache[pseudo] = id; localStorage.setItem("motus_playerids", JSON.stringify(cache)); state.playerId = id; }
-  return id;
+// ====== Auth (inscription / connexion / invite) ======
+function setSession(player) {
+  state.playerId = player.id; state.playerName = player.username; state.isGuest = false;
+  nameCache[player.id] = player.username; saveNameCache();
+  localStorage.setItem("motus_session", JSON.stringify({ id: player.id, name: player.username }));
+  updateUserUI();
 }
-function pseudoForId(id) {
-  const cache = JSON.parse(localStorage.getItem("motus_playerids") || "{}");
-  for (const [p, i] of Object.entries(cache)) if (i === id) return p;
-  return "Joueur " + id;
+function setGuest() {
+  state.playerId = null; state.playerName = null; state.isGuest = true;
+  localStorage.setItem("motus_session", JSON.stringify({ guest: true }));
+  updateUserUI();
+}
+function clearSession() {
+  state.playerId = null; state.playerName = null; state.isGuest = false;
+  localStorage.removeItem("motus_session");
+  updateUserUI();
+}
+function updateUserUI() {
+  const chip = $("userChip"), name = $("userName"), openBtn = $("authOpenBtn"), chev = $("userChevron");
+  const connected = state.playerId != null;
+  const anyone = connected || state.isGuest;
+  chip.hidden = !anyone;
+  openBtn.hidden = anyone;
+  name.textContent = connected ? state.playerName : (state.isGuest ? "Invité" : "");
+  chip.classList.toggle("guest", state.isGuest);
+  chev.textContent = state.isGuest ? "→" : "▾";
+  chip.title = state.isGuest ? "Se connecter" : "Se déconnecter";
+  document.querySelectorAll(".need-account").forEach((b) => { b.style.display = connected ? "" : "none"; });
+}
+
+async function apiRegister(email, username, password) {
+  const r = await fetch(`${PLAYER}/players`, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, email, password }) });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || "Inscription impossible"); }
+  return r.json();
+}
+async function apiLogin(identifiant, password) {
+  const r = await fetch(`${PLAYER}/players/login`, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ identifiant, password }) });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || "Identifiants invalides"); }
+  return r.json();
 }
 
 // ====== Niveaux (dict-service) ======
@@ -124,8 +179,10 @@ async function loadLevels() {
 // ====== Demarrage d'une partie (game-service) ======
 async function startGame() {
   const len = state.selectedLength || 6;
-  const playerId = await resolvePlayer(pseudoInput.value);
-  if (playerId == null) { showBanner("⚠️ player-service injoignable (port 8081)."); return; }
+  if (state.playerId == null && !state.isGuest) { openAuth(); return; }
+  // Mode invite : on utilise le playerId "0" (reserve) que le back accepte comme joueur anonyme.
+  // NB : le back ne connait pas la notion d'invite, on envoie donc un ID fictif dedie.
+  const playerId = state.playerId != null ? state.playerId : 0;
   let game;
   try {
     const res = await fetch(`${GAME}/games`, {
@@ -332,6 +389,7 @@ function renderResult(won, word, seconds, score) {
 async function refreshRanking() {
   try {
     const list = await (await fetch(`${SCORE}/scores/ranking`)).json();
+    await resolveNames(list.map((r) => r.playerId));   // recupere les pseudos manquants
     const me = state.playerId;
     const summary = $("rankingSummary");
     const idx = me != null ? list.findIndex((r) => r.playerId === me) : -1;
@@ -367,7 +425,7 @@ async function refreshRanking() {
 }
 
 async function refreshStats() {
-  const me = state.playerId || (await resolvePlayer(pseudoInput.value));
+  const me = state.playerId;
   if (me == null) return;
   try {
     const s = await (await fetch(`${SCORE}/scores/players/${me}`)).json();
@@ -381,7 +439,7 @@ async function refreshStats() {
 }
 
 async function refreshHistory() {
-  const me = state.playerId || (await resolvePlayer(pseudoInput.value));
+  const me = state.playerId;
   if (me == null) return;
   const body = $("historyBody");
   try {
@@ -439,9 +497,10 @@ function confetti() {
 
 // ====== Widgets (fenetres) ======
 function openModal(name) {
-  if (name === "stats") refreshStats();
-  else if (name === "ranking") refreshRanking();
-  else if (name === "history") refreshHistory();
+  if (name === "share")   { openShare(); return; }
+  if (name === "stats")   refreshStats();
+  if (name === "ranking") refreshRanking();
+  if (name === "history") refreshHistory();
   $("modal-" + name).hidden = false;
 }
 document.querySelectorAll(".tool-btn").forEach((b) => (b.onclick = () => openModal(b.dataset.modal)));
@@ -449,31 +508,93 @@ document.querySelectorAll(".modal").forEach((m) => {
   m.addEventListener("click", (e) => { if (e.target === m || e.target.hasAttribute("data-close")) m.hidden = true; });
 });
 
-// ====== Connexion / deconnexion (clic sur le pseudo) ======
-function setConnected(on) {
-  pseudoInput.readOnly = on;
-  pseudoInput.classList.toggle("connected", on);
+// ====== Modale d'authentification ======
+let authMode = "login";     // "login" | "register"
+function openAuth() { setAuthMode("login"); $("modal-auth").hidden = false; setTimeout(() => $("authIdent").focus(), 60); }
+function setAuthMode(mode) {
+  authMode = mode;
+  document.querySelectorAll(".auth-tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === mode));
+  document.querySelectorAll(".field[data-only]").forEach((f) => { f.style.display = f.dataset.only === mode ? "" : "none"; });
+  $("authIdentLabel").textContent = mode === "login" ? "Pseudo ou e-mail" : "Choisis un pseudo";
+  $("authIdent").placeholder = mode === "login" ? "ton pseudo" : "ex. amelie";
+  $("authSubmit").textContent = mode === "login" ? "Se connecter" : "Créer mon compte";
+  $("authError").hidden = true;
 }
-pseudoInput.addEventListener("click", () => {
-  if (pseudoInput.readOnly && pseudoInput.value.trim()) {
-    $("logoutText").textContent = `Tu veux te déconnecter de « ${pseudoInput.value.trim()} » ?`;
-    $("modal-logout").hidden = false;
-  }
+document.querySelectorAll(".auth-tab").forEach((t) => t.addEventListener("click", () => setAuthMode(t.dataset.tab)));
+$("authOpenBtn").onclick = openAuth;
+$("guestBtn").onclick = () => { setGuest(); $("modal-auth").hidden = true; };
+$("authForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("authError"); err.hidden = true;
+  const ident = $("authIdent").value.trim();
+  const pwd = $("authPassword").value;
+  try {
+    let player;
+    if (authMode === "register") {
+      const email = $("authEmail").value.trim();
+      if (!email || !ident || pwd.length < 6) throw new Error("Remplis tous les champs (mot de passe ≥ 6 caractères).");
+      player = await apiRegister(email, ident, pwd);
+    } else {
+      if (!ident || !pwd) throw new Error("Remplis tous les champs.");
+      player = await apiLogin(ident, pwd);
+    }
+    setSession(player);
+    $("modal-auth").hidden = true;
+    refreshRanking(); refreshStats(); refreshHistory();
+  } catch (ex) { err.textContent = ex.message || "Erreur inconnue"; err.hidden = false; }
 });
-pseudoInput.addEventListener("change", () => {
-  const v = pseudoInput.value.trim();
-  localStorage.setItem("motus_pseudo", v);
-  state.playerId = null;
-  if (v) { setConnected(true); resolvePlayer(v).then(() => { refreshRanking(); refreshStats(); refreshHistory(); }); }
+
+// Clic sur la puce utilisateur :
+// - Si connecte : proposer la deconnexion (comme avant)
+// - Si invite : pas de deconnexion, on ouvre directement l'ecran de connexion / inscription
+$("userChip").addEventListener("click", () => {
+  if (state.isGuest) { clearSession(); openAuth(); return; }
+  $("logoutText").textContent = `Tu veux te déconnecter de « ${state.playerName} » ?`;
+  $("modal-logout").hidden = false;
 });
 $("logoutConfirm").onclick = () => {
-  pseudoInput.value = "";
-  localStorage.removeItem("motus_pseudo");
-  state.playerId = null;
-  setConnected(false);
+  clearSession();
   $("modal-logout").hidden = true;
   $("rankingSummary").hidden = true;
-  pseudoInput.focus();
+  openAuth();
+};
+
+// ====== Modale de partage ======
+function openShare() {
+  const url = window.location.href.split("#")[0].split("?")[0];
+  $("shareUrl").value = url;
+  const moi = state.playerName ? ` (${state.playerName})` : "";
+  const message =
+    `🟩 Coucou !${moi}\n\n` +
+    `Je t'invite à jouer à *Motus* avec moi 🎮\n` +
+    `Le but : deviner le mot mystère en 6 essais.\n` +
+    `Plus le mot est long, plus tu gagnes de points !\n\n` +
+    `👉 Rejoins-moi ici :\n${url}\n\n` +
+    `Bonne chance 💚`;
+  $("waBtn").href = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  $("qrBox").hidden = true;
+  $("modal-share").hidden = false;
+}
+$("copyBtn").onclick = async () => {
+  const url = $("shareUrl").value;
+  try { await navigator.clipboard.writeText(url); $("copyBtn").textContent = "Copié !"; }
+  catch (e) { $("shareUrl").select(); document.execCommand("copy"); $("copyBtn").textContent = "Copié !"; }
+  setTimeout(() => { $("copyBtn").textContent = "Copier"; }, 1500);
+};
+$("qrBtn").onclick = () => {
+  const box = $("qrBox"), canvas = $("qrCanvas");
+  box.hidden = false;
+  // qrcode.js utilise un div ; on cree un div temporaire, on recupere l'image, on la dessine
+  const tmp = document.createElement("div");
+  new QRCode(tmp, { text: $("shareUrl").value, width: 220, height: 220, colorDark: "#2b6b00", colorLight: "#ffffff" });
+  setTimeout(() => {
+    const img = tmp.querySelector("img") || tmp.querySelector("canvas");
+    if (!img) return;
+    canvas.width = 220; canvas.height = 220;
+    const ctx = canvas.getContext("2d");
+    if (img.tagName === "IMG") { const i = new Image(); i.onload = () => ctx.drawImage(i, 0, 0, 220, 220); i.src = img.src; }
+    else ctx.drawImage(img, 0, 0, 220, 220);
+  }, 50);
 };
 
 // ====== Branchements ======
@@ -490,6 +611,13 @@ $("againBtn").onclick = () => show("setup");
 $("quitBtn").onclick = () => { clearInterval(state.timer); show("setup"); };
 
 // ====== Init ======
-pseudoInput.value = localStorage.getItem("motus_pseudo") || "";
-if (pseudoInput.value.trim()) { setConnected(true); resolvePlayer(pseudoInput.value); }
-loadLevels();
+(function init() {
+  const saved = JSON.parse(localStorage.getItem("motus_session") || "null");
+  if (saved && saved.guest) { setGuest(); }
+  else if (saved && saved.id) {
+    state.playerId = saved.id; state.playerName = saved.name;
+    nameCache[saved.id] = saved.name; saveNameCache();
+    updateUserUI();
+  } else { updateUserUI(); openAuth(); }   // premier passage : on affiche l'auth
+  loadLevels();
+})();
