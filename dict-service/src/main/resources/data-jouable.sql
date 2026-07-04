@@ -1,10 +1,15 @@
 -- ================================================================
---  Sous-dictionnaire des mots mysteres.
+--  Sous-dictionnaire des MOTS MYSTERES (executed apres data.sql).
 --
---  data.sql garde un dictionnaire large pour accepter les propositions
---  (conjugaisons, pluriels, formes derivees).
---  Ici, on marque seulement des mots francais courants et raisonnables
---  comme reponses possibles du jeu.
+--  data.sql charge le dictionnaire complet : le champ 'jouable' vaut
+--  FALSE par defaut (cf. Mot.java). Toutes les propositions du joueur
+--  sont validees contre ce dictionnaire large.
+--
+--  Ici, on marque comme jouable=TRUE uniquement les mots francais
+--  courants et non ambigus, pour qu'ils puissent etre tires comme
+--  mot mystere. Les conjugaisons, pluriels, formes archaiques restent
+--  en base (valides comme propositions) mais ne sortiront jamais
+--  comme reponse a trouver.
 -- ================================================================
 
 UPDATE mot SET jouable = TRUE WHERE mot IN (
