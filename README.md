@@ -196,7 +196,11 @@ Voir [`k8s/README.md`](k8s/README.md) pour le détail de chaque manifest et des 
 ├── dict-service/             # microservice dictionnaire (Spring Boot)
 ├── score-service/            # microservice scores/classement/admin (Spring Boot)
 ├── k8s/                      # manifests Kubernetes + scripts de déploiement
-└── docs/screenshots/         # captures d'écran utilisées dans ce README
+└── docs/
+    ├── logo.png               # logo utilisé en couverture de ce README
+    ├── screenshots/           # captures d'écran utilisées dans ce README
+    ├── diagrams/              # architecture et diagramme de classes
+    └── report/                # rapport de projet (PDF + Markdown)
 ```
 
 ## Équipe
