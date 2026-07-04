@@ -4,6 +4,7 @@
 
 # Motus — jeu de mots en microservices
 
+
 Projet **Applications Web orientées Services** — M2 MIAGE SITN, Université Paris-Dauphine (2025-2026).
 
 Une réimplémentation du jeu **Motus** (le mot mystère de 5 à 9 lettres, façon Wordle/Pendu) sous forme de **quatre microservices Spring Boot** indépendants, orchestrés par Docker Compose et déployables sur Kubernetes (Minikube), avec un frontend web statique.
