@@ -16,5 +16,10 @@ INSERT IGNORE INTO players (id, username, email, password, role) VALUES
   (11, 'Manon',   'manon@motus.local',   '$2a$10$demoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDeS', 'PLAYER'),
   (12, 'Julien',  'julien@motus.local',  '$2a$10$demoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDemoDeS', 'PLAYER');
 
+-- Compte administrateur de demo (identifiant "admin", mot de passe "admin123").
+-- Hash BCrypt reel (contrairement aux joueurs ci-dessus) pour permettre la connexion.
+INSERT IGNORE INTO players (id, username, email, password, role) VALUES
+  (13, 'admin', 'admin@motus.local', '$2b$10$lscMQ6NpUUd.hpEeVTJRjupTsybCvM.CVVWGcZTyiPPbUIvDaP.7a', 'ADMIN');
+
 -- Les vrais joueurs (inscrits depuis le front) demarrent a l'ID 100.
 ALTER TABLE players AUTO_INCREMENT = 100;
