@@ -105,9 +105,7 @@ public class ScoreService {
                 .toList();
     }
 
-    // --- helpers ---
-
-    // Petit porteur de valeurs interne (non expose en JSON).
+    // Regroupe les statistiques d'un joueur, calculees a partir de ses parties.
     private record Stats(int games, int wins, int losses, double winRate, double avgAttempts,
                          int totalScore, int bestScore, double avgScore) {
     }

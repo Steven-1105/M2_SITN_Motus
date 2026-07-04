@@ -58,52 +58,36 @@ function updatePendu(wrong, ko = false) {
     p.classList.add("ko");
   }
 }
-// Mascotte KO (yeux X, langue, etoiles) - style rond et mignon
-const KO_OWL_SVG = `<svg viewBox="0 0 90 92" aria-hidden="true">
-  <path d="M20 30 Q16 12 30 12 Q38 16 36 32 Z" fill="#46a302"/>
-  <path d="M70 30 Q74 12 60 12 Q52 16 54 32 Z" fill="#46a302"/>
-  <ellipse cx="45" cy="52" rx="34" ry="36" fill="#46a302"/>
-  <ellipse cx="45" cy="48" rx="34" ry="36" fill="#58cc02"/>
-  <path d="M14 52 Q45 76 76 52 Q76 82 45 84 Q14 82 14 52Z" fill="#c0e796"/>
-  <ellipse cx="18" cy="66" rx="7" ry="5" fill="#ffb3c9" opacity=".85"/>
-  <ellipse cx="72" cy="66" rx="7" ry="5" fill="#ffb3c9" opacity=".85"/>
-  <circle cx="30" cy="44" r="10" fill="#fff"/><circle cx="60" cy="44" r="10" fill="#fff"/>
-  <path d="M25 40 l10 8 M35 40 l-10 8" stroke="#3c3c3c" stroke-width="3.2" stroke-linecap="round"/>
-  <path d="M55 40 l10 8 M65 40 l-10 8" stroke="#3c3c3c" stroke-width="3.2" stroke-linecap="round"/>
-  <path d="M41 58 L45 66 L49 58 Z" fill="#ffb020"/>
-  <ellipse cx="45" cy="72" rx="7" ry="6" fill="#ff6b9d"/>
-  <path d="M38 78 Q42 82 45 78" stroke="#c33665" stroke-width="1.4" fill="none"/>
-  <text x="8" y="28" fill="#ffc800" font-size="18">✦</text>
-  <text x="72" y="24" fill="#ffc800" font-size="18">✦</text>
-  <text x="80" y="52" fill="#ffc800" font-size="14">✦</text>
+// Mascotte KO (yeux X, langue, etoiles) - bonhomme rond blanc simple
+const KO_OWL_SVG = `<svg viewBox="0 0 100 100" aria-hidden="true">
+  <ellipse cx="50" cy="94" rx="30" ry="4" fill="#000" opacity=".1"/>
+  <circle cx="50" cy="52" r="40" fill="#ffffff" stroke="#58a700" stroke-width="3.5"/>
+  <ellipse cx="34" cy="66" rx="7" ry="4" fill="#ffb3c9" opacity=".85"/>
+  <ellipse cx="66" cy="66" rx="7" ry="4" fill="#ffb3c9" opacity=".85"/>
+  <path d="M32 42 l12 12 M44 42 l-12 12" stroke="#3c3c3c" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M56 42 l12 12 M68 42 l-12 12" stroke="#3c3c3c" stroke-width="3.2" stroke-linecap="round"/>
+  <ellipse cx="50" cy="72" rx="6" ry="5" fill="#ff6b9d"/>
+  <text x="6" y="26" fill="#ffc800" font-size="18">✦</text>
+  <text x="82" y="24" fill="#ffc800" font-size="18">✦</text>
+  <text x="88" y="60" fill="#ffc800" font-size="14">✦</text>
 </svg>`;
 
-// Mascotte qui sourit (couronne + grands yeux + sourire) pour la victoire.
-const HAPPY_OWL_SVG = `<svg viewBox="0 0 90 100" aria-hidden="true">
-  <path d="M20 40 Q16 22 30 22 Q38 26 36 42 Z" fill="#46a302"/>
-  <path d="M70 40 Q74 22 60 22 Q52 26 54 42 Z" fill="#46a302"/>
-  <ellipse cx="45" cy="62" rx="34" ry="36" fill="#46a302"/>
-  <ellipse cx="45" cy="58" rx="34" ry="36" fill="#58cc02"/>
-  <path d="M14 62 Q45 86 76 62 Q76 92 45 94 Q14 92 14 62Z" fill="#c0e796"/>
-  <path d="M28 62 Q34 74 42 62" stroke="#a3d16a" stroke-width="1.3" fill="none"/>
-  <path d="M48 62 Q56 74 62 62" stroke="#a3d16a" stroke-width="1.3" fill="none"/>
-  <ellipse cx="16" cy="76" rx="8" ry="5" fill="#ffb3c9" opacity=".85"/>
-  <ellipse cx="74" cy="76" rx="8" ry="5" fill="#ffb3c9" opacity=".85"/>
-  <circle cx="30" cy="52" r="13" fill="#fff"/>
-  <circle cx="60" cy="52" r="13" fill="#fff"/>
-  <circle cx="31" cy="54" r="7" fill="#3c3c3c"/>
-  <circle cx="61" cy="54" r="7" fill="#3c3c3c"/>
-  <circle cx="33" cy="50" r="3" fill="#fff"/>
-  <circle cx="63" cy="50" r="3" fill="#fff"/>
-  <circle cx="29" cy="56" r="1.4" fill="#fff"/>
-  <circle cx="59" cy="56" r="1.4" fill="#fff"/>
-  <path d="M40 66 L45 74 L50 66 Z" fill="#ffb020" stroke="#e07a00" stroke-width="0.6"/>
-  <path d="M34 80 Q45 90 56 80" stroke="#2b6b00" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-  <path d="M18 22 l4 -12 l6 10 l4 -14 l5 14 l6 -10 l4 12 l5 -12 l3 12 z" fill="#ffc800" stroke="#e0ae00" stroke-width="1.2" stroke-linejoin="round"/>
-  <circle cx="24" cy="12" r="1.8" fill="#ff4b4b"/>
-  <circle cx="38" cy="8" r="1.8" fill="#1cb0f6"/>
-  <circle cx="52" cy="8" r="1.8" fill="#a06bff"/>
-  <circle cx="66" cy="12" r="1.8" fill="#58cc02"/>
+// Mascotte qui sourit (couronne + sourire) pour la victoire - bonhomme rond blanc simple
+const HAPPY_OWL_SVG = `<svg viewBox="0 0 100 110" aria-hidden="true">
+  <ellipse cx="50" cy="104" rx="30" ry="4" fill="#000" opacity=".1"/>
+  <path d="M18 26 l6 -14 l7 12 l5 -16 l6 16 l6 -12 l5 12 l7 -16 l6 16 l4 -12 z" fill="#ffc800" stroke="#e0ae00" stroke-width="1.2" stroke-linejoin="round"/>
+  <circle cx="26" cy="14" r="2" fill="#ff4b4b"/>
+  <circle cx="42" cy="10" r="2" fill="#1cb0f6"/>
+  <circle cx="58" cy="10" r="2" fill="#a06bff"/>
+  <circle cx="74" cy="14" r="2" fill="#58cc02"/>
+  <circle cx="50" cy="62" r="40" fill="#ffffff" stroke="#58a700" stroke-width="3.5"/>
+  <circle cx="38" cy="56" r="7" fill="#3c3c3c"/>
+  <circle cx="62" cy="56" r="7" fill="#3c3c3c"/>
+  <circle cx="36" cy="53" r="2.5" fill="#fff"/>
+  <circle cx="60" cy="53" r="2.5" fill="#fff"/>
+  <ellipse cx="24" cy="72" rx="8" ry="5" fill="#ffb3c9" opacity=".85"/>
+  <ellipse cx="76" cy="72" rx="8" ry="5" fill="#ffb3c9" opacity=".85"/>
+  <path d="M36 78 Q50 92 64 78" fill="none" stroke="#3c3c3c" stroke-width="3.4" stroke-linecap="round"/>
 </svg>`;
 
 // ====== Auth (inscription / connexion / invite) ======
@@ -182,8 +166,7 @@ async function loadLevels() {
 async function startGame() {
   const len = state.selectedLength || 6;
   if (state.playerId == null && !state.isGuest) { openAuth(); return; }
-  // Mode invite : on utilise le playerId "0" (reserve) que le back accepte comme joueur anonyme.
-  // NB : le back ne connait pas la notion d'invite, on envoie donc un ID fictif dedie.
+  // Mode invite : playerId=0, filtre du classement cote score-service.
   const playerId = state.playerId != null ? state.playerId : 0;
   let game;
   try {
