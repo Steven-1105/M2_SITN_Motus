@@ -203,6 +203,7 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 /* ---------- Fenêtres (widgets) ---------- */
 .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
 .modal-card { background: #fff; border-radius: 22px; padding: 22px; width: 100%; max-width: 420px; max-height: 82vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); }
+.modal-card.wide { max-width: 640px; }
 .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; }
 .modal-head h3 { margin: 0; }
 .modal-close { width: 36px; height: 36px; flex: none; border: none; border-radius: 12px; background: var(--bg2); font-size: 16px; font-weight: 800; color: var(--muted); cursor: pointer; }
@@ -259,6 +260,14 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 .auth-sep, .auth-note, #guestBtn { text-align: center; }
 .auth-note { margin-top: 10px; }
 #guestBtn { display: block; margin: 0 auto; }
+
+/* ---------- Admin ---------- */
+.admin-filters { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
+.admin-filters .field { flex: 1; min-width: 130px; }
+.admin-filters select { padding: 12px 14px; border: 2px solid var(--border); border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 700; color: var(--text); outline: none; }
+.admin-actions { display: flex; gap: 8px; }
+.hist-item.admin { justify-content: space-between; }
+.hist-player { font-size: 13px; font-weight: 800; color: var(--blue); }
 
 /* ---------- Partage ---------- */
 .share-link { display: flex; gap: 8px; margin-top: 8px; }
