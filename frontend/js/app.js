@@ -10,7 +10,7 @@ const state = {
   gameId: null, length: 6, maxAttempts: MAX_ATTEMPTS, firstLetter: "",
   row: 0, col: 1, board: [], finished: false,
   startTime: 0, timer: null, selectedLength: null,
-  playerId: null, playerName: null, isGuest: false,
+  playerId: null, playerName: null, isGuest: false, role: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -109,17 +109,18 @@ const HAPPY_OWL_SVG = `<svg viewBox="0 0 90 100" aria-hidden="true">
 // ====== Auth (inscription / connexion / invite) ======
 function setSession(player) {
   state.playerId = player.id; state.playerName = player.username; state.isGuest = false;
+  state.role = player.role || "PLAYER";
   nameCache[player.id] = player.username; saveNameCache();
-  localStorage.setItem("motus_session", JSON.stringify({ id: player.id, name: player.username }));
+  localStorage.setItem("motus_session", JSON.stringify({ id: player.id, name: player.username, role: state.role }));
   updateUserUI();
 }
 function setGuest() {
-  state.playerId = null; state.playerName = null; state.isGuest = true;
+  state.playerId = null; state.playerName = null; state.isGuest = true; state.role = null;
   localStorage.setItem("motus_session", JSON.stringify({ guest: true }));
   updateUserUI();
 }
 function clearSession() {
-  state.playerId = null; state.playerName = null; state.isGuest = false;
+  state.playerId = null; state.playerName = null; state.isGuest = false; state.role = null;
   localStorage.removeItem("motus_session");
   updateUserUI();
 }
@@ -134,6 +135,7 @@ function updateUserUI() {
   chev.textContent = state.isGuest ? "→" : "▾";
   chip.title = state.isGuest ? "Se connecter" : "Se déconnecter";
   document.querySelectorAll(".need-account").forEach((b) => { b.style.display = connected ? "" : "none"; });
+  $("adminBtn").hidden = state.role !== "ADMIN";
 }
 
 async function apiRegister(email, username, password) {
@@ -477,6 +479,73 @@ async function refreshHistory() {
   } catch (e) { /* silencieux */ }
 }
 
+// ====== Admin : lister/rechercher les parties (joueur, date) ======
+let adminPlayersLoaded = false;
+async function loadAdminPlayers() {
+  if (adminPlayersLoaded) return;
+  try {
+    const players = await (await fetch(`${PLAYER}/players`)).json();
+    const sel = $("adminPlayer");
+    players
+      .sort((a, b) => a.username.localeCompare(b.username))
+      .forEach((p) => {
+        const opt = document.createElement("option");
+        opt.value = p.id; opt.textContent = p.username;
+        sel.appendChild(opt);
+      });
+    adminPlayersLoaded = true;
+  } catch (e) { /* silencieux */ }
+}
+async function openAdmin() {
+  await loadAdminPlayers();
+  runAdminSearch();
+}
+async function runAdminSearch() {
+  const playerId = $("adminPlayer").value;
+  const from = $("adminFrom").value;
+  const to = $("adminTo").value;
+  const body = $("adminBody"), count = $("adminCount");
+  body.innerHTML = '<p class="muted small">Recherche…</p>';
+  const params = new URLSearchParams();
+  if (playerId) params.set("playerId", playerId);
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  try {
+    const games = await (await fetch(`${SCORE}/scores/games?${params}`)).json();
+    await resolveNames(games.map((g) => g.playerId));
+    count.textContent = games.length + " partie" + (games.length > 1 ? "s" : "");
+    if (!games.length) { body.innerHTML = '<p class="muted small">Aucune partie ne correspond à ces critères.</p>'; return; }
+    body.innerHTML = "";
+    games
+      .sort((a, b) => b.finishedAt.localeCompare(a.finishedAt))
+      .forEach((g) => {
+        const dt = new Date(g.finishedAt.slice(0, 19));
+        const when = dt.toLocaleDateString("fr-FR") + " · " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+        const item = document.createElement("div");
+        item.className = "hist-item admin " + (g.won ? "win" : "loss");
+        const badge = g.won
+          ? `<span class="hist-badge win" title="Gagné">🏆</span>`
+          : `<span class="hist-badge loss" title="Perdu">✕</span>`;
+        item.innerHTML =
+          `${badge}` +
+          `<div class="hist-main">` +
+            `<div class="hist-player">${pseudoForId(g.playerId)}</div>` +
+            `<div class="hist-meta">${when} · ${g.wordLength} lettres · ${g.attempts}/${g.maxAttempts} essais</div>` +
+          `</div>` +
+          `<span class="hist-score ${g.won ? "" : "loss"}">${g.score} pts</span>`;
+        body.appendChild(item);
+      });
+  } catch (e) {
+    body.innerHTML = '<p class="muted small">⚠️ score-service injoignable (port 8084).</p>';
+    count.textContent = "";
+  }
+}
+$("adminForm").addEventListener("submit", (e) => { e.preventDefault(); runAdminSearch(); });
+$("adminReset").onclick = () => {
+  $("adminPlayer").value = ""; $("adminFrom").value = ""; $("adminTo").value = "";
+  runAdminSearch();
+};
+
 // ====== Confettis ======
 function confetti() {
   const cv = $("confetti"), ctx = cv.getContext("2d");
@@ -501,6 +570,7 @@ function openModal(name) {
   if (name === "stats")   refreshStats();
   if (name === "ranking") refreshRanking();
   if (name === "history") refreshHistory();
+  if (name === "admin")   openAdmin();
   $("modal-" + name).hidden = false;
 }
 document.querySelectorAll(".tool-btn").forEach((b) => (b.onclick = () => openModal(b.dataset.modal)));
@@ -615,7 +685,7 @@ $("quitBtn").onclick = () => { clearInterval(state.timer); show("setup"); };
   const saved = JSON.parse(localStorage.getItem("motus_session") || "null");
   if (saved && saved.guest) { setGuest(); }
   else if (saved && saved.id) {
-    state.playerId = saved.id; state.playerName = saved.name;
+    state.playerId = saved.id; state.playerName = saved.name; state.role = saved.role || "PLAYER";
     nameCache[saved.id] = saved.name; saveNameCache();
     updateUserUI();
   } else { updateUserUI(); openAuth(); }   // premier passage : on affiche l'auth

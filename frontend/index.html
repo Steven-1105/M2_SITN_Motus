@@ -57,6 +57,9 @@
           <button class="tool-btn need-account" data-modal="history" title="Historique de mes parties" aria-label="Historique">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
           </button>
+          <button id="adminBtn" class="tool-btn" data-modal="admin" title="Administration" aria-label="Administration" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/><path d="M19 8l1.5 1.5L23 7"/></svg>
+          </button>
         </div>
       </div>
     </header>
@@ -201,6 +204,33 @@
     <div class="modal-card">
       <div class="modal-head"><h3>Historique de tes parties</h3><button class="modal-close" data-close>✕</button></div>
       <div id="historyBody" class="history-list"><p class="muted small">Aucune partie jouée pour l'instant.</p></div>
+    </div>
+  </div>
+
+  <!-- ADMIN : lister/rechercher toutes les parties (joueur, date) -->
+  <div class="modal" id="modal-admin" hidden>
+    <div class="modal-card wide">
+      <div class="modal-head"><h3>Administration — parties jouées</h3><button class="modal-close" data-close>✕</button></div>
+      <form id="adminForm" class="auth-form admin-filters">
+        <label class="field">
+          <span>Joueur</span>
+          <select id="adminPlayer"><option value="">Tous les joueurs</option></select>
+        </label>
+        <label class="field">
+          <span>Du</span>
+          <input id="adminFrom" type="date"/>
+        </label>
+        <label class="field">
+          <span>Au</span>
+          <input id="adminTo" type="date"/>
+        </label>
+        <div class="admin-actions">
+          <button type="submit" class="btn primary small">Rechercher</button>
+          <button type="button" id="adminReset" class="btn ghost small">Réinitialiser</button>
+        </div>
+      </form>
+      <p id="adminCount" class="muted small"></p>
+      <div id="adminBody" class="history-list"><p class="muted small">Lance une recherche.</p></div>
     </div>
   </div>
 
