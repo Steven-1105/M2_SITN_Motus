@@ -256,7 +256,9 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 .auth-error { background: #fff0f0; color: #d83a3a; border: 2px solid #ffd0d0; padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 700; }
 .auth-sep { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; margin: 14px 0 10px; }
 .auth-sep::before, .auth-sep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-.auth-note { text-align: center; margin-top: 10px; }
+.auth-sep, .auth-note, #guestBtn { text-align: center; }
+.auth-note { margin-top: 10px; }
+#guestBtn { display: block; margin: 0 auto; }
 
 /* ---------- Partage ---------- */
 .share-link { display: flex; gap: 8px; margin-top: 8px; }

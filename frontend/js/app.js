@@ -388,7 +388,8 @@ function renderResult(won, word, seconds, score) {
 // ====== Classement / stats / historique (score-service) ======
 async function refreshRanking() {
   try {
-    const list = await (await fetch(`${SCORE}/scores/ranking`)).json();
+    const raw = await (await fetch(`${SCORE}/scores/ranking`)).json();
+    const list = raw.filter((r) => r.playerId > 0);
     await resolveNames(list.map((r) => r.playerId));   // recupere les pseudos manquants
     const me = state.playerId;
     const summary = $("rankingSummary");
