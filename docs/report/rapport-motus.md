@@ -1,5 +1,7 @@
 # Motus — Rapport de projet
 
+<img src="../diagrams/mascot.png" alt="Mascotte Motus" width="90">
+
 **Applications Web orientées Services** — M2 MIAGE SITN
 Université Paris-Dauphine · Année 2025-2026
 
