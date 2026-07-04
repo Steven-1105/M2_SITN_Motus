@@ -1,0 +1,55 @@
+-- Donnees de demonstration : une partie game-service par score seede (memes game_id que score-service).
+-- Necessaire pour que le panneau d'administration puisse afficher le mot mystere de chaque partie terminee.
+-- INSERT IGNORE = MySQL : idempotent (les seeds ne se dupliquent pas au redemarrage).
+
+INSERT IGNORE INTO games
+  (id, player_id, mot_mystere, word_length, max_attempts, attempts_used, statut, created_at) VALUES
+  (9001, 2, 'MONTAGNE', 8, 6, 3, 'GAGNE', '2026-06-25 20:12:00'),
+  (9002, 2, 'VOITURE', 7, 6, 4, 'GAGNE', '2026-06-26 21:03:00'),
+  (9003, 2, 'JARDIN', 6, 6, 2, 'GAGNE', '2026-06-27 19:20:00'),
+  (9004, 2, 'FRAMBOISE', 9, 6, 3, 'GAGNE', '2026-06-28 22:45:00'),
+  (9005, 2, 'AQUARIUM', 8, 6, 6, 'PERDU', '2026-06-29 20:00:00'),
+  (9006, 2, 'BONJOUR', 7, 6, 4, 'GAGNE', '2026-06-30 21:30:00'),
+  (9007, 2, 'ELEPHANT', 8, 6, 3, 'GAGNE', '2026-07-01 22:15:00'),
+  (9008, 2, 'MUSIQUE', 7, 6, 2, 'GAGNE', '2026-07-02 19:45:00'),
+  (9010, 1, 'MAISON', 6, 6, 3, 'GAGNE', '2026-06-26 18:30:00'),
+  (9011, 1, 'TABLE', 5, 6, 4, 'GAGNE', '2026-06-28 20:10:00'),
+  (9012, 1, 'CHATEAU', 7, 6, 2, 'GAGNE', '2026-06-30 21:00:00'),
+  (9013, 1, 'VACANCES', 8, 6, 6, 'PERDU', '2026-07-01 19:15:00'),
+  (9014, 1, 'BATEAU', 6, 6, 3, 'GAGNE', '2026-07-02 22:30:00'),
+  (9015, 1, 'JOURNAL', 7, 6, 4, 'GAGNE', '2026-07-03 20:45:00'),
+  (9020, 3, 'CRAYON', 6, 6, 4, 'GAGNE', '2026-06-27 19:00:00'),
+  (9021, 3, 'CHIEN', 5, 6, 5, 'GAGNE', '2026-06-28 20:20:00'),
+  (9022, 3, 'PAPIER', 6, 6, 6, 'PERDU', '2026-06-29 21:30:00'),
+  (9023, 3, 'CHOCOLAT', 8, 6, 3, 'GAGNE', '2026-06-30 22:15:00'),
+  (9024, 3, 'POISSON', 7, 6, 4, 'GAGNE', '2026-07-01 20:05:00'),
+  (9025, 3, 'MARCHE', 6, 6, 5, 'GAGNE', '2026-07-02 21:40:00'),
+  (9030, 4, 'FLEUR', 5, 6, 5, 'GAGNE', '2026-06-27 18:20:00'),
+  (9031, 4, 'VOYAGE', 6, 6, 6, 'PERDU', '2026-06-28 19:50:00'),
+  (9032, 4, 'MOUTON', 6, 6, 4, 'GAGNE', '2026-06-30 21:10:00'),
+  (9033, 4, 'CHAPEAU', 7, 6, 5, 'GAGNE', '2026-07-02 20:30:00'),
+  (9034, 4, 'ROUTE', 5, 6, 6, 'PERDU', '2026-07-03 21:05:00'),
+  (9040, 5, 'PLAGE', 5, 6, 2, 'GAGNE', '2026-06-28 19:15:00'),
+  (9041, 5, 'MONDE', 5, 6, 3, 'GAGNE', '2026-06-29 20:00:00'),
+  (9042, 5, 'POISON', 6, 6, 2, 'GAGNE', '2026-07-01 21:00:00'),
+  (9043, 5, 'TROUVER', 7, 6, 6, 'PERDU', '2026-07-02 20:15:00'),
+  (9044, 5, 'RADIO', 5, 6, 4, 'GAGNE', '2026-07-03 19:30:00'),
+  (9050, 6, 'RENARD', 6, 6, 5, 'GAGNE', '2026-06-28 20:40:00'),
+  (9051, 6, 'DANSER', 6, 6, 4, 'GAGNE', '2026-06-30 21:20:00'),
+  (9052, 6, 'PLAFOND', 7, 6, 6, 'PERDU', '2026-07-01 22:00:00'),
+  (9053, 6, 'VERRE', 5, 6, 3, 'GAGNE', '2026-07-03 20:00:00'),
+  (9055, 7, 'FENETRE', 7, 6, 4, 'GAGNE', '2026-06-29 19:30:00'),
+  (9056, 7, 'PANTALON', 8, 6, 5, 'GAGNE', '2026-07-01 20:50:00'),
+  (9057, 7, 'PLANTE', 6, 6, 3, 'GAGNE', '2026-07-02 22:00:00'),
+  (9060, 8, 'SUCRE', 5, 6, 5, 'GAGNE', '2026-06-30 20:15:00'),
+  (9061, 8, 'GATEAU', 6, 6, 6, 'PERDU', '2026-07-01 21:45:00'),
+  (9062, 8, 'ANIMAL', 6, 6, 4, 'GAGNE', '2026-07-03 19:50:00'),
+  (9063, 9, 'BUREAU', 6, 6, 4, 'GAGNE', '2026-07-01 20:20:00'),
+  (9064, 9, 'GLACE', 5, 6, 5, 'GAGNE', '2026-07-02 21:15:00'),
+  (9065, 10, 'VIRAGE', 6, 6, 5, 'GAGNE', '2026-07-02 20:00:00'),
+  (9066, 10, 'SOULIER', 7, 6, 6, 'PERDU', '2026-07-03 21:25:00'),
+  (9067, 11, 'PORTE', 5, 6, 4, 'GAGNE', '2026-07-01 19:45:00'),
+  (9068, 12, 'HERBE', 5, 6, 5, 'GAGNE', '2026-07-03 21:50:00');
+
+-- Les vraies parties commencent au dela (evite tout conflit d'ID).
+ALTER TABLE games AUTO_INCREMENT = 100;
