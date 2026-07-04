@@ -183,7 +183,7 @@ Voir [`k8s/README.md`](k8s/README.md) pour le détail de chaque manifest et des 
 - **Gestion des parties** : choix de la longueur du mot (5 à 9 lettres, difficulté croissante), 6 essais, retour visuel lettre par lettre, minuteur.
 - **Suivi des scores** : score par partie, statistiques individuelles, historique des parties jouées.
 - **Classement** : classement global de tous les joueurs par points cumulés.
-- **Administration** : un compte de rôle `ADMIN` peut lister et filtrer l'ensemble des parties jouées par joueur et par période
+- **Administration** : un compte de rôle `ADMIN` peut lister et filtrer l'ensemble des parties jouées par joueur et par période.
 
 ## Structure du dépôt
 
