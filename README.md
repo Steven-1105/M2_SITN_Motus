@@ -11,6 +11,7 @@ Une réimplémentation du jeu **Motus** (le mot mystère de 5 à 9 lettres, faç
 - [Aperçu](#aperçu)
 - [Captures d'écran](#captures-décran)
 - [Architecture](#architecture)
+- [Diagramme de classes](#diagramme-de-classes)
 - [Stack technique](#stack-technique)
 - [Démarrage rapide (Docker Compose)](#démarrage-rapide-docker-compose)
 - [Déploiement Kubernetes (Minikube)](#déploiement-kubernetes-minikube)
@@ -71,6 +72,17 @@ Le projet suit une architecture microservices : chaque service possède sa propr
 - **score-service** (port `8084`) — persistance des résultats de parties, statistiques par joueur, classement global, et recherche/filtrage des parties pour l'administration.
 
 Chaque service expose son API REST et persiste ses données dans sa propre base MySQL (`motus_players`, `motus_games`, `motus_dictionary`, `motus_scores`), toutes hébergées par une unique instance MySQL en développement.
+
+## Diagramme de classes
+
+Le modèle métier est réparti entre les quatre microservices : chaque service possède ses propres entités JPA et sa propre base de données. Il n'y a donc pas de clé étrangère entre services — les liens (`playerId`, `gameId`) sont de simples références par identifiant, résolues au niveau applicatif (appels REST), pas au niveau base de données.
+
+![Diagramme de classes](docs/diagrams/class-diagram.png)
+
+- **player-service** : `Player` (avec son `Role`, `PLAYER` ou `ADMIN`).
+- **game-service** : `Game` (1 partie) compose plusieurs `GameAttempt` (les essais) ; `Game` référence un `GameStatus` et interroge `dict-service` pour choisir/valider un mot.
+- **dict-service** : `Mot`, le dictionnaire français utilisé pour choisir le mot mystère et valider les essais.
+- **score-service** : `GameResult`, le résultat persistant d'une partie terminée (poussé par game-service à la fin de la partie), utilisé pour le classement, les statistiques et l'administration.
 
 ## Stack technique
 
