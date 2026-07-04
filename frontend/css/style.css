@@ -133,6 +133,9 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 .chip.timer { font-variant-numeric: tabular-nums; color: var(--blue); border-color: #b9e6fb; background: #eaf7fe; }
 .chip.quit { margin-left: auto; cursor: pointer; }
 .chip.quit:hover { color: var(--red); border-color: #ffc4c4; }
+.play-rank { background: #f4fbef; border: 2px solid var(--green-l); color: var(--green-d); font-size: 13px; font-weight: 800; padding: 8px 14px; border-radius: 12px; text-align: center; margin-top: -6px; }
+.play-rank b { color: var(--green-d); }
+.play-rank sup { font-size: 10px; }
 
 /* ---------- Grille ---------- */
 .board { display: grid; gap: 8px; justify-content: center; margin: 6px 0; }
@@ -265,17 +268,14 @@ h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
 .admin-filters { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
 .admin-filters .field { flex: 1; min-width: 130px; }
 .admin-filters select { padding: 12px 14px; border: 2px solid var(--border); border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 700; color: var(--text); outline: none; }
-.admin-actions { display: flex; gap: 8px; }
-.hist-item.admin { justify-content: space-between; }
-.hist-player { font-size: 13px; font-weight: 800; color: var(--blue); }
-
 /* ---------- Admin ---------- */
 .admin-filters { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
 .admin-filters .field { flex: 1; min-width: 130px; }
 .admin-filters select { padding: 12px 14px; border: 2px solid var(--border); border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 700; color: var(--text); outline: none; }
 .admin-actions { display: flex; gap: 8px; }
 .hist-item.admin { justify-content: space-between; }
-.hist-player { font-size: 13px; font-weight: 800; color: var(--blue); }
+.hist-player { font-size: 14px; font-weight: 800; color: var(--blue); display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+.hist-word-inline { font-size: 16px; font-weight: 900; letter-spacing: 1.5px; color: var(--text); text-transform: uppercase; }
 
 /* ---------- Partage ---------- */
 .share-link { display: flex; gap: 8px; margin-top: 8px; }

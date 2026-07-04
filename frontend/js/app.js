@@ -198,6 +198,33 @@ async function startGame() {
   primeRow();
   show("play");
   startTimer();
+  refreshPlayRank();
+}
+
+// Chip qui s'affiche pendant la partie : position dans le classement + ecart.
+async function refreshPlayRank() {
+  const el = $("playRank");
+  if (state.playerId == null) { el.hidden = true; return; }
+  try {
+    const raw = await (await fetch(`${SCORE}/scores/ranking`)).json();
+    const list = raw.filter((r) => r.playerId > 0);
+    const idx = list.findIndex((r) => r.playerId === state.playerId);
+    if (idx < 0) {
+      el.innerHTML = `Pas encore classé — joue ta 1<sup>re</sup> partie pour apparaître !`;
+    } else if (idx === 0) {
+      const next = list[1];
+      const avance = next ? list[0].totalScore - next.totalScore : 0;
+      el.innerHTML = next
+        ? `🥇 1<sup>er</sup>/${list.length} — <b>${avance}</b> pts d'avance sur le suivant`
+        : `🥇 1<sup>er</sup>/${list.length} — seul en tête !`;
+    } else {
+      const rank = idx + 1;
+      const gap = list[idx].pointsToNext;
+      const suffix = rank === 1 ? "er" : "e";
+      el.innerHTML = `${rank}<sup>${suffix}</sup>/${list.length} — il te manque <b>${gap}</b> pts pour rattraper le joueur devant`;
+    }
+    el.hidden = false;
+  } catch (e) { el.hidden = true; }
 }
 
 function buildBoard() {
@@ -499,26 +526,32 @@ async function runAdminSearch() {
     await resolveNames(games.map((g) => g.playerId));
     count.textContent = games.length + " partie" + (games.length > 1 ? "s" : "");
     if (!games.length) { body.innerHTML = '<p class="muted small">Aucune partie ne correspond à ces critères.</p>'; return; }
+    // Recupere le mot cible de chaque partie via game-service (en parallele)
+    const sorted = games.slice().sort((a, b) => b.finishedAt.localeCompare(a.finishedAt));
+    const words = await Promise.all(sorted.map(async (g) => {
+      try { const r = await fetch(`${GAME}/games/${g.gameId}`); if (!r.ok) return null;
+            const j = await r.json(); return (j.motMystere || "").includes("*") ? null : j.motMystere; }
+      catch (e) { return null; }
+    }));
     body.innerHTML = "";
-    games
-      .sort((a, b) => b.finishedAt.localeCompare(a.finishedAt))
-      .forEach((g) => {
-        const dt = new Date(g.finishedAt.slice(0, 19));
-        const when = dt.toLocaleDateString("fr-FR") + " · " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-        const item = document.createElement("div");
-        item.className = "hist-item admin " + (g.won ? "win" : "loss");
-        const badge = g.won
-          ? `<span class="hist-badge win" title="Gagné">🏆</span>`
-          : `<span class="hist-badge loss" title="Perdu">✕</span>`;
-        item.innerHTML =
-          `${badge}` +
-          `<div class="hist-main">` +
-            `<div class="hist-player">${pseudoForId(g.playerId)}</div>` +
-            `<div class="hist-meta">${when} · ${g.wordLength} lettres · ${g.attempts}/${g.maxAttempts} essais</div>` +
-          `</div>` +
-          `<span class="hist-score ${g.won ? "" : "loss"}">${g.score} pts</span>`;
-        body.appendChild(item);
-      });
+    sorted.forEach((g, i) => {
+      const dt = new Date(g.finishedAt.slice(0, 19));
+      const when = dt.toLocaleDateString("fr-FR") + " · " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+      const word = (words[i] || "?????").toUpperCase();
+      const item = document.createElement("div");
+      item.className = "hist-item admin " + (g.won ? "win" : "loss");
+      const badge = g.won
+        ? `<span class="hist-badge win" title="Gagné">🏆</span>`
+        : `<span class="hist-badge loss" title="Perdu">✕</span>`;
+      item.innerHTML =
+        `${badge}` +
+        `<div class="hist-main">` +
+          `<div class="hist-player">${pseudoForId(g.playerId)} — <span class="hist-word-inline">${word}</span></div>` +
+          `<div class="hist-meta">${when} · ${g.wordLength} lettres · ${g.attempts}/${g.maxAttempts} essais</div>` +
+        `</div>` +
+        `<span class="hist-score ${g.won ? "" : "loss"}">${g.score} pts</span>`;
+      body.appendChild(item);
+    });
   } catch (e) {
     body.innerHTML = '<p class="muted small">⚠️ score-service injoignable (port 8084).</p>';
     count.textContent = "";
@@ -621,7 +654,7 @@ function openShare() {
   const message =
     `🟩 Coucou !${moi}\n\n` +
     `Je t'invite à jouer à *Motus* avec moi 🎮\n` +
-    `Le but : deviner le mot mystère en 6 essais.\n` +
+    `Le but : deviner le mot juste en 6 essais.\n` +
     `Plus le mot est long, plus tu gagnes de points !\n\n` +
     `👉 Rejoins-moi ici :\n${url}\n\n` +
     `Bonne chance 💚`;
