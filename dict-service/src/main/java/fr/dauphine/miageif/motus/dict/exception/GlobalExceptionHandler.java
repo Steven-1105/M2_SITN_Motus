@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-// Centralise le formatage des erreurs (meme principe que game-service de Steven).
+// Centralise le formatage des erreurs (meme principe que game-service de Hongxiang).
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

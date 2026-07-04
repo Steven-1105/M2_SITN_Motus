@@ -7,7 +7,7 @@
 
 INSERT IGNORE INTO game_result
   (id, game_id, player_id, won, attempts, max_attempts, word_length, duration_seconds, score, finished_at) VALUES
-  -- Steven (joueur #2) : le meilleur, joue beaucoup, gagne souvent, mots longs
+  -- Hongxiang (joueur #2) : le meilleur, joue beaucoup, gagne souvent, mots longs
   (9001, 9001, 2, TRUE,  3, 6, 8, 45,  1170, '2026-06-25 20:12:00'),
   (9002, 9002, 2, TRUE,  4, 6, 7,  62, 850,  '2026-06-26 21:03:00'),
   (9003, 9003, 2, TRUE,  2, 6, 6, 38,  784,  '2026-06-27 19:20:00'),
