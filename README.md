@@ -202,5 +202,3 @@ Voir [`k8s/README.md`](k8s/README.md) pour le détail de chaque manifest et des 
 
 - **Hongxiang** — player-service, game-service
 - **Liya** — dict-service, score-service, frontend
-
-M2 MIAGE SITN — Université Paris-Dauphine · 2026
