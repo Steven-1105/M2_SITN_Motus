@@ -54,8 +54,10 @@ public class ScoreService {
 
     // Classement global : trie par total de points (desc), puis victoires (desc), puis joueur.
     // pointsToNext = ecart de points pour rattraper le joueur juste au-dessus.
+    // Les parties jouees en MODE INVITE (playerId <= 0) sont exclues du classement.
     public List<RankingEntry> ranking() {
         Map<Long, List<GameResult>> byPlayer = repository.findAll().stream()
+                .filter(g -> g.getPlayerId() != null && g.getPlayerId() > 0)
                 .collect(Collectors.groupingBy(GameResult::getPlayerId));
 
         List<RankingEntry> classes = byPlayer.entrySet().stream()
