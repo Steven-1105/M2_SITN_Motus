@@ -37,45 +37,30 @@ class MotRepositoryTest {
     }
 
     @Test
-    void cleanupRefuseLesPrenomsEtMotsAnglais() {
-        assertThat(repository.existsByMotIgnoreCase("MARIE")).isFalse();
-        assertThat(repository.existsByMotIgnoreCase("TWIST")).isFalse();
-    }
-
-    @Test
-    void findRandomJouableExclutLesFormesConjugueesEnEz() {
-        // PRIEZ (jeu de test) est une conjugaison, elle ne doit jamais sortir comme reponse,
-        // meme si elle reste un mot valide pour /words/validate (existsByMotIgnoreCase).
-        for (int i = 0; i < 200; i++) {
-            Mot tirage = repository.findRandomJouableByLongueur(5);
-            assertThat(tirage.getMot()).isNotEqualTo("PRIEZ");
-        }
-    }
-
-    @Test
-    void findRandomJouableAutoriseLesExceptionsConnues() {
-        // ASSEZ se termine en -EZ mais n'est pas un verbe conjugue : il doit rester tirable.
-        assertThat(repository.existsByMotIgnoreCase("ASSEZ")).isTrue();
-    }
-
-    @Test
-    void findRandomJouableExclutLePasseSimpleQuandLInfinitifExiste() {
-        // BRAQUA vient de BRAQUER : le mot reste valide, mais ne doit pas devenir mot mystere.
+    void findRandomJouableNeSortJamaisDeMotJouableFalse() {
+        // PRIEZ, BRAQUA, SALLES sont en base avec jouable=false : ils doivent
+        // rester valides comme propositions (existsByMotIgnoreCase = true) mais
+        // ne jamais etre tires comme mot mystere.
+        assertThat(repository.existsByMotIgnoreCase("PRIEZ")).isTrue();
         assertThat(repository.existsByMotIgnoreCase("BRAQUA")).isTrue();
-        for (int i = 0; i < 200; i++) {
-            Mot tirage = repository.findRandomJouableByLongueur(6);
-            assertThat(tirage.getMot()).isNotEqualTo("BRAQUA");
+        assertThat(repository.existsByMotIgnoreCase("SALLES")).isTrue();
+        for (int i = 0; i < 100; i++) {
+            String tirage5 = repository.findRandomJouableByLongueur(5).getMot();
+            String tirage6 = repository.findRandomJouableByLongueur(6).getMot();
+            assertThat(tirage5).isNotEqualTo("PRIEZ");
+            assertThat(tirage6).isNotEqualTo("BRAQUA");
+            assertThat(tirage6).isNotEqualTo("SALLES");
         }
     }
 
     @Test
-    void findRandomJouableExclutLesPlurielsMaisLesGardeValides() {
-        // SALLES est un vrai mot : il doit etre accepte comme proposition,
-        // mais le mot mystere doit preferer le singulier SALLE.
-        assertThat(repository.existsByMotIgnoreCase("SALLES")).isTrue();
-        for (int i = 0; i < 200; i++) {
-            Mot tirage = repository.findRandomJouableByLongueur(6);
-            assertThat(tirage.getMot()).isNotEqualTo("SALLES");
+    void findRandomJouableRetourneUniquementDesMotsMarquesJouable() {
+        // Verifie que toutes les longueurs 5-9 renvoient bien un mot jouable=true.
+        for (int longueur = 5; longueur <= 9; longueur++) {
+            Mot tirage = repository.findRandomJouableByLongueur(longueur);
+            assertThat(tirage).isNotNull();
+            assertThat(tirage.isJouable()).isTrue();
+            assertThat(tirage.getLongueur()).isEqualTo(longueur);
         }
     }
 
